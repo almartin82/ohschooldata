@@ -52,8 +52,210 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9">
-Downloads and processes school data from the Ohio Department of Education and Workforce (ODEW). Provides functions for fetching enrollment data and transforming it into tidy format for analysis.
+  <main id="main" class="col-md-9"><div class="section level1">
+<div class="page-header"><h1 id="ohschooldata">ohschooldata<a class="anchor" aria-label="anchor" href="#ohschooldata"></a>
+</h1></div>
+<!-- badges: start -->
+
+<p>An R package for fetching and processing Ohio school enrollment data from the Ohio Department of Education and Workforce (ODEW).</p>
+<div class="section level2">
+<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
+</h2>
+<p><code>ohschooldata</code> provides a simple interface to download, process, and analyze Ohio public school enrollment data. The package: - Downloads enrollment data from the Ohio School Report Cards portal - Transforms raw data into a standardized, tidy format - Supports district and building (school) level data - Includes demographic breakdowns and grade-level enrollment - Provides local caching to avoid repeated downloads</p>
+</div>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<p>Install from GitHub:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"almartin82/ohschooldata"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
+</h2>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://almartin82.github.io/ohschooldata/">ohschooldata</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Fetch 2024 enrollment data (2023-24 school year)</span></span>
+<span><span class="va">enr</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># View statewide totals</span></span>
+<span><span class="va">enr</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_state</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Get data for a specific district using IRN</span></span>
+<span><span class="va">columbus</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="reference/filter_district.html">filter_district</a></span><span class="op">(</span><span class="st">"043752"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Filter by county</span></span>
+<span><span class="va">franklin</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="reference/filter_county.html">filter_county</a></span><span class="op">(</span><span class="st">"Franklin"</span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="tidying-the-data">Tidying the Data<a class="anchor" aria-label="anchor" href="#tidying-the-data"></a>
+</h3>
+<p>By default, <code><a href="reference/fetch_enr.html">fetch_enr()</a></code> returns data in tidy (long) format. For wide format:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Wide format: one column per demographic</span></span>
+<span><span class="va">enr_wide</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2024</span>, tidy <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Or tidy an existing wide dataset</span></span>
+<span><span class="va">enr_tidy</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tidy_enr.html">tidy_enr</a></span><span class="op">(</span><span class="va">enr_wide</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="multiple-years">Multiple Years<a class="anchor" aria-label="anchor" href="#multiple-years"></a>
+</h3>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Fetch a range of years</span></span>
+<span><span class="va">enr_history</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fetch_enr_range.html">fetch_enr_range</a></span><span class="op">(</span><span class="fl">2020</span>, <span class="fl">2024</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Or use purrr</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://purrr.tidyverse.org/" class="external-link">purrr</a></span><span class="op">)</span></span>
+<span><span class="va">enr_multi</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_df</a></span><span class="op">(</span><span class="fl">2020</span><span class="op">:</span><span class="fl">2024</span>, <span class="va">fetch_enr</span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
+</h2>
+<p>Full documentation is available at the <a href="https://almartin82.github.io/ohschooldata/">pkgdown site</a>.</p>
+</div>
+<div class="section level2">
+<h2 id="available-data">Available Data<a class="anchor" aria-label="anchor" href="#available-data"></a>
+</h2>
+<div class="section level3">
+<h3 id="years">Years<a class="anchor" aria-label="anchor" href="#years"></a>
+</h3>
+<p>Data is available from <strong>2015 onwards</strong> through the Ohio School Report Cards portal. Use <code><a href="reference/list_enr_years.html">list_enr_years()</a></code> to see currently available years.</p>
+</div>
+<div class="section level3">
+<h3 id="data-sources">Data Sources<a class="anchor" aria-label="anchor" href="#data-sources"></a>
+</h3>
+<p>Data is sourced from the <a href="https://reportcard.education.ohio.gov/" class="external-link">Ohio School Report Cards</a> portal, which provides enrollment files from the EMIS (Education Management Information System).</p>
+<p><strong>Note</strong>: If automated downloads fail due to portal security, you can manually download files from <a href="https://reportcard.education.ohio.gov/download" class="external-link">reportcard.education.ohio.gov/download</a> and use <code><a href="reference/import_local_enrollment.html">import_local_enrollment()</a></code> to load them.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="understanding-irn-codes">Understanding IRN Codes<a class="anchor" aria-label="anchor" href="#understanding-irn-codes"></a>
+</h2>
+<p>Ohio uses <strong>IRN (Information Retrieval Number)</strong> as the unique identifier for districts and buildings:</p>
+<ul>
+<li>IRNs are 6-digit codes (e.g., <code>043752</code> for Columbus City Schools)</li>
+<li>District IRNs identify school districts</li>
+<li>Building IRNs identify individual schools within districts</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Validate and format IRNs</span></span>
+<span><span class="fu"><a href="reference/is_valid_irn.html">is_valid_irn</a></span><span class="op">(</span><span class="st">"043752"</span><span class="op">)</span>  <span class="co"># TRUE</span></span>
+<span><span class="fu"><a href="reference/format_irn.html">format_irn</a></span><span class="op">(</span><span class="fl">43752</span><span class="op">)</span>       <span class="co"># "043752" (adds leading zeros)</span></span>
+<span></span>
+<span><span class="co"># Filter by district IRN</span></span>
+<span><span class="va">columbus</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="reference/filter_district.html">filter_district</a></span><span class="op">(</span><span class="st">"043752"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="ohio-school-types">Ohio School Types<a class="anchor" aria-label="anchor" href="#ohio-school-types"></a>
+</h2>
+<p>The data includes flags for Ohio-specific school types:</p>
+<ul>
+<li>
+<code>is_traditional</code>: Traditional public school districts</li>
+<li>
+<code>is_community_school</code>: Community schools (Ohio’s term for charter schools)</li>
+<li>
+<code>is_jvsd</code>: Joint Vocational School Districts (career-technical centers)</li>
+<li>
+<code>is_stem</code>: STEM schools</li>
+</ul>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Get only community schools</span></span>
+<span><span class="va">community</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_community_school</span>, <span class="va">is_district</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Get traditional public districts</span></span>
+<span><span class="va">traditional</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_traditional</span>, <span class="va">is_district</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="data-schema">Data Schema<a class="anchor" aria-label="anchor" href="#data-schema"></a>
+</h2>
+<p>Tidy format includes these columns:</p>
+<table class="table">
+<thead><tr class="header">
+<th>Column</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>end_year</code></td>
+<td>School year end (e.g., 2024 for 2023-24)</td>
+</tr>
+<tr class="even">
+<td><code>district_irn</code></td>
+<td>6-digit district IRN</td>
+</tr>
+<tr class="odd">
+<td><code>building_irn</code></td>
+<td>6-digit building IRN (NA for district-level)</td>
+</tr>
+<tr class="even">
+<td><code>district_name</code></td>
+<td>Name of the district</td>
+</tr>
+<tr class="odd">
+<td><code>building_name</code></td>
+<td>Name of the building (NA for district-level)</td>
+</tr>
+<tr class="even">
+<td><code>entity_type</code></td>
+<td>“District” or “Building”</td>
+</tr>
+<tr class="odd">
+<td><code>county</code></td>
+<td>Ohio county name</td>
+</tr>
+<tr class="even">
+<td><code>grade_level</code></td>
+<td>Grade level (“TOTAL”, “K”, “01”, etc.)</td>
+</tr>
+<tr class="odd">
+<td><code>subgroup</code></td>
+<td>Demographic subgroup</td>
+</tr>
+<tr class="even">
+<td><code>n_students</code></td>
+<td>Student count</td>
+</tr>
+<tr class="odd">
+<td><code>pct</code></td>
+<td>Percentage of total enrollment</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level2">
+<h2 id="caching">Caching<a class="anchor" aria-label="anchor" href="#caching"></a>
+</h2>
+<p>Downloaded data is cached locally to speed up subsequent requests:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># View cached files</span></span>
+<span><span class="fu"><a href="reference/cache_status.html">cache_status</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Clear cache for a specific year</span></span>
+<span><span class="fu"><a href="reference/clear_enr_cache.html">clear_enr_cache</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Clear all cached data</span></span>
+<span><span class="fu"><a href="reference/clear_enr_cache.html">clear_enr_cache</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Force fresh download</span></span>
+<span><span class="va">enr</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2024</span>, use_cache <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="contributing">Contributing<a class="anchor" aria-label="anchor" href="#contributing"></a>
+</h2>
+<p>Issues and pull requests are welcome at <a href="https://github.com/almartin82/ohschooldata" class="external-link">GitHub</a>.</p>
+</div>
+<div class="section level2">
+<h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>
+</h2>
+<p>MIT</p>
+</div>
+</div>
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
@@ -86,7 +288,13 @@ Downloads and processes school data from the Ohio Department of Education and Wo
 </ul>
 </div>
 
-
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/almartin82/ohschooldata/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/almartin82/ohschooldata/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://github.com/almartin82/ohschooldata/actions/workflows/pkgdown.yaml" class="external-link"><img src="https://github.com/almartin82/ohschooldata/actions/workflows/pkgdown.yaml/badge.svg" alt="pkgdown"></a></li>
+</ul>
+</div>
 
   </aside>
 </div>
