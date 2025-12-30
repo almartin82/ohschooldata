@@ -1,0 +1,232 @@
+# Getting Started with ohschooldata
+
+## Installation
+
+Install from GitHub:
+
+``` r
+# install.packages("remotes")
+remotes::install_github("almartin82/ohschooldata")
+```
+
+## Data Access Note
+
+**Important**: The Ohio Department of Education and Workforce Report
+Card portal uses dynamic tokens for file access. If automated downloads
+fail, you may need to:
+
+1.  Visit <https://reportcard.education.ohio.gov/download>
+2.  Select year and download Enrollment files manually
+3.  Use
+    [`import_local_enrollment()`](https://almartin82.github.io/ohschooldata/reference/import_local_enrollment.md)
+    to load the downloaded files
+
+## Quick Example
+
+Fetch the most recent year of Ohio enrollment data:
+
+``` r
+library(ohschooldata)
+library(dplyr)
+
+# Fetch 2024 enrollment data (2023-24 school year)
+enr <- fetch_enr(2024)
+
+head(enr)
+```
+
+## Understanding the Data
+
+The data is returned in **tidy (long) format** by default:
+
+- Each row is one subgroup for one district/building
+- `subgroup` identifies the demographic group (e.g., “total_enrollment”,
+  “white”, “hispanic”, “economically_disadvantaged”)
+- `grade_level` shows the grade (“TOTAL”, “K”, “01”, “02”, etc.)
+- `n_students` is the enrollment count
+- `pct` is the percentage of total enrollment
+
+``` r
+enr %>%
+  filter(is_state) %>%
+  select(end_year, entity_type, subgroup, grade_level, n_students) %>%
+  head(10)
+```
+
+## Ohio-Specific Identifiers
+
+Ohio uses **IRN (Information Retrieval Number)** as the unique 6-digit
+identifier for districts and buildings:
+
+``` r
+enr %>%
+  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL") %>%
+  select(district_irn, district_name, county, n_students) %>%
+  head(5)
+```
+
+## Filtering by Level
+
+Use the aggregation flags to filter data:
+
+``` r
+# State totals
+state <- enr %>% filter(is_state, subgroup == "total_enrollment", grade_level == "TOTAL")
+state %>% select(end_year, n_students)
+
+# All districts
+districts <- enr %>% filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL")
+nrow(districts)
+
+# All buildings (schools)
+buildings <- enr %>% filter(is_building, subgroup == "total_enrollment", grade_level == "TOTAL")
+nrow(buildings)
+```
+
+## Ohio School Types
+
+Ohio has several distinct school types, identified by flags in the data:
+
+``` r
+# Traditional public districts
+traditional <- enr %>% filter(is_traditional, is_district)
+
+# Community schools (Ohio's term for charter schools)
+community <- enr %>% filter(is_community_school, is_district)
+
+# Joint Vocational School Districts (JVSDs)
+jvsd <- enr %>% filter(is_jvsd, is_district)
+
+# STEM schools
+stem <- enr %>% filter(is_stem, is_district)
+```
+
+## Simple Analysis: Top 10 Districts
+
+``` r
+enr %>%
+  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL") %>%
+  arrange(desc(n_students)) %>%
+  select(district_name, county, n_students) %>%
+  head(10)
+```
+
+## Filtering by District or County
+
+Use convenience functions to filter by district IRN or county:
+
+``` r
+# Get Columbus City Schools (IRN 043752)
+columbus <- enr %>% filter_district("043752")
+
+# Get all Franklin County districts and schools
+franklin <- enr %>% filter_county("Franklin")
+```
+
+## Wide Format
+
+If you prefer wide format (one column per demographic), set
+`tidy = FALSE`:
+
+``` r
+enr_wide <- fetch_enr(2024, tidy = FALSE)
+
+enr_wide %>%
+  filter(entity_type == "State") %>%
+  select(end_year, enrollment_total, white, black, hispanic, asian, economically_disadvantaged)
+```
+
+## Historical Data
+
+Fetch multiple years to analyze trends:
+
+``` r
+# Fetch 5 years of data
+enr_history <- fetch_enr_range(2020, 2024)
+
+# Or use purrr
+years <- 2020:2024
+all_enr <- purrr::map_df(years, fetch_enr)
+
+# State enrollment trend
+all_enr %>%
+  filter(is_state, subgroup == "total_enrollment", grade_level == "TOTAL") %>%
+  select(end_year, n_students)
+```
+
+## Statewide Summary
+
+Get a quick statewide enrollment summary:
+
+``` r
+# Single year summary
+get_state_enrollment(2024)
+
+# Multi-year trend
+get_state_enrollment(2020:2024)
+```
+
+## Grade Level Aggregates
+
+Create common grade-level groupings (K-8, 9-12, K-12):
+
+``` r
+grade_aggregates <- enr_grade_aggs(enr)
+
+grade_aggregates %>%
+  filter(is_state) %>%
+  select(grade_level, n_students)
+```
+
+## Visualization Example
+
+``` r
+library(ggplot2)
+
+# Top 20 districts by enrollment
+enr %>%
+  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL") %>%
+  arrange(desc(n_students)) %>%
+  head(20) %>%
+  ggplot(aes(x = reorder(district_name, n_students), y = n_students)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(
+    title = "Top 20 Ohio Districts by Enrollment",
+    x = NULL,
+    y = "Total Enrollment"
+  ) +
+  theme_minimal()
+```
+
+## Cache Management
+
+Downloaded data is cached locally to avoid repeated downloads:
+
+``` r
+# View cached files
+cache_status()
+
+# Clear all cached data
+clear_enr_cache()
+
+# Clear specific year
+clear_enr_cache(2024)
+
+# Force fresh download (ignore cache)
+enr_fresh <- fetch_enr(2024, use_cache = FALSE)
+```
+
+## Next Steps
+
+- Use
+  [`?fetch_enr`](https://almartin82.github.io/ohschooldata/reference/fetch_enr.md)
+  for full function documentation
+- See
+  [`?filter_district`](https://almartin82.github.io/ohschooldata/reference/filter_district.md)
+  and
+  [`?filter_county`](https://almartin82.github.io/ohschooldata/reference/filter_county.md)
+  for filtering helpers
+- Check
+  [`?enr_grade_aggs`](https://almartin82.github.io/ohschooldata/reference/enr_grade_aggs.md)
+  for creating grade-level aggregates

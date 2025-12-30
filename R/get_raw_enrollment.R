@@ -16,12 +16,17 @@
 #' portal. Data includes district and building level enrollment by grade,
 #' demographics, and special populations.
 #'
+#' Note: Ohio Report Card data access may require manual download from
+#' \url{https://reportcard.education.ohio.gov/download} if direct downloads
+#' fail. The download portal uses dynamic tokens that may prevent automated
+#' access.
+#'
 #' @param end_year School year end (2023-24 = 2024)
 #' @return Raw data frame from ODEW
 #' @keywords internal
 get_raw_enr <- function(end_year) {
 
- # Ohio Report Card data is available from ~2015 onwards in consistent format
+  # Ohio Report Card data is available from ~2015 onwards in consistent format
   # Earlier years have different formats and locations
 
   if (end_year >= 2015) {
@@ -37,14 +42,20 @@ get_raw_enr <- function(end_year) {
 #' Downloads enrollment data from the Ohio School Report Cards portal.
 #' Modern format (2015+) uses Excel files with consistent naming.
 #'
+#' Note: Ohio uses dynamic tokens for file access which may cause downloads
+#' to fail. If automated download fails, you may need to:
+#' 1. Visit https://reportcard.education.ohio.gov/download
+#' 2. Select year and download Enrollment files manually
+#' 3. Use import_local_enrollment() to load the downloaded files
+#'
 #' @param end_year School year end
 #' @return Raw data frame with district and building enrollment
 #' @keywords internal
 get_raw_enr_modern <- function(end_year) {
 
   # Build URLs for Ohio Report Card data
+  # Ohio uses various URL patterns depending on the year
   # Format: https://reportcardstorage.education.ohio.gov/data-download-YYYY/
-  # Files: YY-YY_Enrollment_Building.xlsx, YY-YY_Enrollment_District.xlsx
 
   # Calculate school year string (e.g., 2024 -> "23-24")
   start_year <- end_year - 1
@@ -52,24 +63,51 @@ get_raw_enr_modern <- function(end_year) {
   yy_end <- substr(end_year, 3, 4)
   year_str <- paste0(yy_start, "-", yy_end)
 
-  # Base URL for report card storage
-  base_url <- paste0(
-    "https://reportcardstorage.education.ohio.gov/data-download-",
-    end_year, "/"
+  # Try multiple base URL patterns
+  base_urls <- c(
+    paste0("https://reportcardstorage.education.ohio.gov/data-download-", end_year, "/"),
+    paste0("https://reportcardstorage.education.ohio.gov/", end_year, "/"),
+    paste0("https://reportcardstorage.education.ohio.gov/downloads/", end_year, "/")
+  )
+
+  # Try multiple file naming patterns
+  building_patterns <- c(
+    paste0(year_str, "_ENROLLMENT_BUILDING.xlsx"),
+    paste0(year_str, "_Enrollment_Building.xlsx"),
+    paste0(year_str, "-ENROLLMENT-BUILDING.xlsx"),
+    "ENROLLMENT_BUILDING.xlsx",
+    "Enrollment_Building.xlsx"
+  )
+
+  district_patterns <- c(
+    paste0(year_str, "_ENROLLMENT_DISTRICT.xlsx"),
+    paste0(year_str, "_Enrollment_District.xlsx"),
+    paste0(year_str, "-ENROLLMENT-DISTRICT.xlsx"),
+    "ENROLLMENT_DISTRICT.xlsx",
+    "Enrollment_District.xlsx"
   )
 
   # Try to download building-level enrollment data
-  building_file <- paste0(year_str, "_ENROLLMENT_BUILDING.xlsx")
-  building_url <- paste0(base_url, building_file)
+  building_df <- NULL
+  for (base_url in base_urls) {
+    for (pattern in building_patterns) {
+      building_url <- paste0(base_url, pattern)
+      building_df <- download_ohio_excel(building_url, "building", end_year)
+      if (!is.null(building_df)) break
+    }
+    if (!is.null(building_df)) break
+  }
 
-  district_file <- paste0(year_str, "_ENROLLMENT_DISTRICT.xlsx")
-  district_url <- paste0(base_url, district_file)
-
-  # Download building data
-  building_df <- download_ohio_excel(building_url, "building", end_year)
-
-  # Download district data
-  district_df <- download_ohio_excel(district_url, "district", end_year)
+  # Try to download district-level enrollment data
+  district_df <- NULL
+  for (base_url in base_urls) {
+    for (pattern in district_patterns) {
+      district_url <- paste0(base_url, pattern)
+      district_df <- download_ohio_excel(district_url, "district", end_year)
+      if (!is.null(district_df)) break
+    }
+    if (!is.null(district_df)) break
+  }
 
   # Combine district and building data
   # Add entity_type to distinguish
@@ -88,7 +126,12 @@ get_raw_enr_modern <- function(end_year) {
   } else if (!is.null(building_df)) {
     result <- building_df
   } else {
-    stop(paste("Could not download enrollment data for year", end_year))
+    stop(paste(
+      "Could not download enrollment data for year", end_year, "\n",
+      "Ohio Report Card data may require manual download.\n",
+      "Please visit: https://reportcard.education.ohio.gov/download\n",
+      "Download the Enrollment files and use import_local_enrollment() to load them."
+    ))
   }
 
   result$end_year <- end_year
@@ -265,4 +308,65 @@ list_enr_years <- function() {
 
   # Return available range
   2015:max_year
+}
+
+
+#' Import local enrollment Excel files
+#'
+#' Imports enrollment data from locally downloaded Excel files.
+#' Use this when automatic downloads fail and you need to manually
+#' download files from \url{https://reportcard.education.ohio.gov/download}.
+#'
+#' @param district_file Path to district-level enrollment Excel file
+#' @param building_file Path to building-level enrollment Excel file (optional)
+#' @param end_year School year end (e.g., 2024 for 2023-24)
+#' @return Raw data frame with enrollment data
+#' @export
+#' @examples
+#' \dontrun{
+#' # After downloading files from Ohio Report Card portal:
+#' enr_raw <- import_local_enrollment(
+#'   district_file = "~/Downloads/23-24_ENROLLMENT_DISTRICT.xlsx",
+#'   building_file = "~/Downloads/23-24_ENROLLMENT_BUILDING.xlsx",
+#'   end_year = 2024
+#' )
+#' }
+import_local_enrollment <- function(district_file = NULL, building_file = NULL, end_year) {
+
+  if (is.null(district_file) && is.null(building_file)) {
+    stop("At least one of district_file or building_file must be provided")
+  }
+
+  district_df <- NULL
+  building_df <- NULL
+
+  if (!is.null(district_file)) {
+    if (!file.exists(district_file)) {
+      stop(paste("District file not found:", district_file))
+    }
+    district_df <- readxl::read_excel(district_file, sheet = 1)
+    district_df$entity_type <- "District"
+    message(paste("Loaded district data:", nrow(district_df), "rows"))
+  }
+
+  if (!is.null(building_file)) {
+    if (!file.exists(building_file)) {
+      stop(paste("Building file not found:", building_file))
+    }
+    building_df <- readxl::read_excel(building_file, sheet = 1)
+    building_df$entity_type <- "Building"
+    message(paste("Loaded building data:", nrow(building_df), "rows"))
+  }
+
+  # Combine datasets
+  if (!is.null(district_df) && !is.null(building_df)) {
+    result <- dplyr::bind_rows(district_df, building_df)
+  } else if (!is.null(district_df)) {
+    result <- district_df
+  } else {
+    result <- building_df
+  }
+
+  result$end_year <- end_year
+  result
 }

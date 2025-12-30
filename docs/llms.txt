@@ -1,0 +1,67 @@
+Downloads and processes school data from the Ohio Department of
+Education and Workforce (ODEW). Provides functions for fetching
+enrollment data and transforming it into tidy format for analysis.
+
+# Package index
+
+## Fetch Data
+
+Download enrollment data from ODEW
+
+- [`fetch_enr()`](https://almartin82.github.io/ohschooldata/reference/fetch_enr.md)
+  : Fetch Ohio enrollment data
+- [`fetch_enr_range()`](https://almartin82.github.io/ohschooldata/reference/fetch_enr_range.md)
+  : Fetch enrollment data for multiple years
+- [`get_state_enrollment()`](https://almartin82.github.io/ohschooldata/reference/get_state_enrollment.md)
+  : Get Ohio statewide enrollment summary
+- [`import_local_enrollment()`](https://almartin82.github.io/ohschooldata/reference/import_local_enrollment.md)
+  : Import local enrollment Excel files
+- [`list_enr_years()`](https://almartin82.github.io/ohschooldata/reference/list_enr_years.md)
+  : List available enrollment data years
+
+## Process & Tidy
+
+Transform data into analysis-ready formats
+
+- [`tidy_enr()`](https://almartin82.github.io/ohschooldata/reference/tidy_enr.md)
+  : Tidy enrollment data
+- [`id_enr_aggs()`](https://almartin82.github.io/ohschooldata/reference/id_enr_aggs.md)
+  : Identify enrollment aggregation levels
+- [`enr_grade_aggs()`](https://almartin82.github.io/ohschooldata/reference/enr_grade_aggs.md)
+  : Custom Enrollment Grade Level Aggregates
+
+## Filter Data
+
+Convenience functions for filtering enrollment data
+
+- [`filter_district()`](https://almartin82.github.io/ohschooldata/reference/filter_district.md)
+  : Filter enrollment data by district
+- [`filter_county()`](https://almartin82.github.io/ohschooldata/reference/filter_county.md)
+  : Filter enrollment data by county
+
+## IRN Utilities
+
+Work with Ohio IRN identifiers
+
+- [`is_valid_irn()`](https://almartin82.github.io/ohschooldata/reference/is_valid_irn.md)
+  : Validate IRN format
+- [`format_irn()`](https://almartin82.github.io/ohschooldata/reference/format_irn.md)
+  : Format IRN with leading zeros
+
+## Cache Management
+
+Manage locally cached data
+
+- [`cache_status()`](https://almartin82.github.io/ohschooldata/reference/cache_status.md)
+  : Show cache status
+- [`clear_enr_cache()`](https://almartin82.github.io/ohschooldata/reference/clear_enr_cache.md)
+  : Clear the ohschooldata cache
+
+# Articles
+
+### All vignettes
+
+- [Data Quality Analysis for Ohio School
+  Enrollment](https://almartin82.github.io/ohschooldata/articles/data-quality-qa.md):
+- [Getting Started with
+  ohschooldata](https://almartin82.github.io/ohschooldata/articles/quickstart.md):
