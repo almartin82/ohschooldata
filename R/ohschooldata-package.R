@@ -1,0 +1,49 @@
+#' ohschooldata: Fetch and Process Ohio School Data
+#'
+#' The ohschooldata package provides functions to download and process
+#' school data from the Ohio Department of Education and Workforce (ODEW).
+#'
+#' @section Main Functions:
+#' \itemize{
+#'   \item \code{\link{fetch_enr}}: Download enrollment data for a specific year
+#'   \item \code{\link{fetch_enr_range}}: Download enrollment data for multiple years
+#'   \item \code{\link{get_state_enrollment}}: Get statewide enrollment summary
+#' }
+#'
+#' @section Data Processing:
+#' \itemize{
+#'   \item \code{\link{tidy_enr}}: Convert wide data to tidy (long) format
+#'   \item \code{\link{id_enr_aggs}}: Add aggregation level flags
+#'   \item \code{\link{enr_grade_aggs}}: Create grade-level aggregates
+#' }
+#'
+#' @section Filtering:
+#' \itemize{
+#'   \item \code{\link{filter_district}}: Filter by district IRN
+#'   \item \code{\link{filter_county}}: Filter by county name
+#' }
+#'
+#' @section IRN Utilities:
+#' \itemize{
+#'   \item \code{\link{is_valid_irn}}: Validate IRN format
+#'   \item \code{\link{format_irn}}: Format IRN with leading zeros
+#' }
+#'
+#' @section Cache Management:
+#' \itemize{
+#'   \item \code{\link{cache_status}}: Show cached data status
+#'   \item \code{\link{clear_enr_cache}}: Clear cached data
+#' }
+#'
+#' @section Data Source:
+#' Data is downloaded from the Ohio School Report Cards data portal at
+#' \url{https://reportcard.education.ohio.gov/download}.
+#'
+#' Ohio uses IRN (Information Retrieval Number), a 6-digit identifier,
+#' for districts and schools.
+#'
+#' @docType package
+#' @name ohschooldata-package
+#' @aliases ohschooldata
+#' @keywords internal
+"_PACKAGE"

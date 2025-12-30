@@ -10,42 +10,156 @@
 #' Fetch Ohio enrollment data
 #'
 #' Downloads and processes enrollment data from the Ohio Department of
-#' Education and Workforce EMIS data files.
+#' Education and Workforce EMIS data files. Data is available from the
+#' Ohio School Report Cards data download portal.
 #'
 #' @param end_year A school year. Year is the end of the academic year - eg 2023-24
-#'   school year is year '2024'.
+#'   school year is year '2024'. Valid values are 2015 onwards (earlier years may
+#'   have limited data or different formats).
 #' @param tidy If TRUE (default), returns data in long (tidy) format with subgroup
-#'   column. If FALSE, returns wide format.
+#'   column. If FALSE, returns wide format with one row per entity.
 #' @param use_cache If TRUE (default), uses locally cached data when available.
 #'   Set to FALSE to force re-download from ODEW.
-#' @return Data frame with enrollment data
+#' @return Data frame with enrollment data. Tidy format includes columns:
+#'   \itemize{
+#'     \item end_year: School year end (e.g., 2024 for 2023-24)
+#'     \item district_irn: 6-digit district IRN
+#'     \item building_irn: 6-digit building IRN (NA for district-level)
+#'     \item district_name: Name of the district
+#'     \item building_name: Name of the building (NA for district-level)
+#'     \item entity_type: "District" or "Building"
+#'     \item county: Ohio county name
+#'     \item grade_level: Grade level or "TOTAL"
+#'     \item subgroup: Demographic or population subgroup
+#'     \item n_students: Student count
+#'     \item pct: Percentage of total enrollment
+#'   }
 #' @export
 #' @examples
 #' \dontrun{
 #' # Get 2024 enrollment data (2023-24 school year)
 #' enr_2024 <- fetch_enr(2024)
 #'
-#' # Get wide format
+#' # Get wide format (one row per entity)
 #' enr_wide <- fetch_enr(2024, tidy = FALSE)
 #'
 #' # Force fresh download (ignore cache)
 #' enr_fresh <- fetch_enr(2024, use_cache = FALSE)
+#'
+#' # Get multiple years
+#' enr_multi <- purrr::map_df(2020:2024, fetch_enr)
 #' }
 fetch_enr <- function(end_year, tidy = TRUE, use_cache = TRUE) {
 
- # TODO: Validate year range for Ohio data availability
+  # Validate year
+  available_years <- list_enr_years()
+  if (end_year < min(available_years)) {
+    stop(paste(
+      "end_year must be", min(available_years), "or later.",
+      "Earlier data may not be available through the standard download portal."
+    ))
+  }
+  if (end_year > max(available_years)) {
+    warning(paste(
+      "Data for", end_year, "may not be available yet.",
+      "The most recent confirmed year is", max(available_years)
+    ))
+  }
 
-  # TODO: Determine cache type based on tidy parameter
+  # Determine cache type based on tidy parameter
+  cache_type <- if (tidy) "tidy" else "wide"
 
-  # TODO: Check cache first
+  # Check cache first
+  if (use_cache && cache_exists(end_year, cache_type)) {
+    message(paste("Using cached data for", end_year))
+    return(read_cache(end_year, cache_type))
+  }
 
-  # TODO: Get raw data from ODEW
+  # Get raw data
+  message(paste("Downloading enrollment data for", end_year, "..."))
+  raw <- get_raw_enr(end_year)
 
-  # TODO: Process to standard schema
+  # Process to standard schema
+  processed <- process_enr(raw, end_year)
 
-  # TODO: Optionally tidy
+  # Optionally tidy
+  if (tidy) {
+    processed <- tidy_enr(processed) %>%
+      id_enr_aggs()
+  }
 
-  # TODO: Cache the result
+  # Cache the result
+  if (use_cache) {
+    write_cache(processed, end_year, cache_type)
+    message(paste("Cached data for", end_year))
+  }
 
-  stop("Not yet implemented - see docs/PRD.md for specifications")
+  processed
+}
+
+
+#' Fetch enrollment data for multiple years
+#'
+#' Convenience function to download enrollment data for a range of years.
+#' Results are combined into a single data frame.
+#'
+#' @param start_year First year to fetch
+#' @param end_year Last year to fetch
+#' @param tidy If TRUE (default), returns tidy format
+#' @param use_cache If TRUE (default), uses cached data when available
+#' @return Combined data frame with enrollment data for all requested years
+#' @export
+#' @examples
+#' \dontrun{
+#' # Get 5 years of enrollment data
+#' enr_history <- fetch_enr_range(2020, 2024)
+#' }
+fetch_enr_range <- function(start_year, end_year, tidy = TRUE, use_cache = TRUE) {
+  years <- start_year:end_year
+  purrr::map_df(years, function(y) {
+    tryCatch(
+      fetch_enr(y, tidy = tidy, use_cache = use_cache),
+      error = function(e) {
+        warning(paste("Could not fetch data for", y, ":", e$message))
+        NULL
+      }
+    )
+  })
+}
+
+
+#' Get Ohio statewide enrollment summary
+#'
+#' Returns a summary of statewide enrollment totals by year.
+#'
+#' @param end_year School year end (or vector of years)
+#' @param use_cache If TRUE (default), uses cached data
+#' @return Data frame with statewide enrollment by year
+#' @export
+#' @examples
+#' \dontrun{
+#' # Get statewide summary for 2024
+#' state_summary <- get_state_enrollment(2024)
+#'
+#' # Get 5-year trend
+#' state_trend <- get_state_enrollment(2020:2024)
+#' }
+get_state_enrollment <- function(end_year, use_cache = TRUE) {
+  purrr::map_df(end_year, function(y) {
+    df <- fetch_enr(y, tidy = TRUE, use_cache = use_cache)
+
+    # Aggregate to state level
+    df %>%
+      dplyr::filter(
+        entity_type == "District",
+        subgroup == "total_enrollment",
+        grade_level == "TOTAL"
+      ) %>%
+      dplyr::summarize(
+        end_year = y,
+        n_districts = dplyr::n_distinct(district_irn),
+        total_enrollment = sum(n_students, na.rm = TRUE),
+        .groups = "drop"
+      )
+  })
 }
