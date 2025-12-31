@@ -222,19 +222,175 @@ process_enr_modern <- function(df, end_year) {
 
 #' Process legacy format ODEW data
 #'
-#' Processes enrollment data from older Ohio data formats (pre-2015).
+#' Processes enrollment data from older Ohio data formats (2007-2014).
 #' Column layouts and file formats differ from modern data.
 #'
+#' Legacy data characteristics:
+#' - May use different column names (e.g., "School IRN" vs "Building IRN")
+#' - May have different grade level encoding
+#' - Demographics may be in percentage rather than count format
+#' - Some columns present in modern data may be missing
+#'
 #' @param df Raw data frame with layout-derived column names
-#' @param end_year School year end
-#' @return Processed data frame
+#' @param end_year School year end (2007-2014)
+#' @return Processed data frame with standardized columns
 #' @keywords internal
 process_enr_legacy <- function(df, end_year) {
 
-  # For legacy data, try to use the same processing logic
- # but with more flexible column matching
+  cols <- names(df)
 
-  process_enr_modern(df, end_year)
+  # Helper function to find column by pattern (case-insensitive)
+  find_col <- function(pattern) {
+    matched <- grep(pattern, cols, value = TRUE, ignore.case = TRUE)
+    if (length(matched) > 0) matched[1] else NULL
+  }
+
+  # Initialize result data frame
+  result <- data.frame(
+    end_year = rep(end_year, nrow(df)),
+    stringsAsFactors = FALSE
+  )
+
+  # === IDENTIFIERS ===
+  # Legacy data may use "School" instead of "Building"
+
+  # District IRN
+  dist_irn_col <- find_col("^District.*IRN$|^Dist.*IRN$|^DIST_IRN$|^DISTRICT$")
+  if (!is.null(dist_irn_col)) {
+    result$district_irn <- sprintf("%06d", as.integer(df[[dist_irn_col]]))
+  }
+
+  # Building/School IRN (legacy often uses "School")
+  bldg_irn_col <- find_col("^Building.*IRN$|^Bldg.*IRN$|^School.*IRN$|^SCHOOL_IRN$|^IRN$")
+  if (!is.null(bldg_irn_col)) {
+    result$building_irn <- sprintf("%06d", as.integer(df[[bldg_irn_col]]))
+  }
+
+  # District Name
+  dist_name_col <- find_col("^District.*Name$|^Dist.*Name$|^DISTRICT$|^District$")
+  if (!is.null(dist_name_col) && dist_name_col != dist_irn_col) {
+    result$district_name <- trimws(df[[dist_name_col]])
+  }
+
+  # Building/School Name
+  bldg_name_col <- find_col("^Building.*Name$|^Bldg.*Name$|^School.*Name$|^SCHOOL$|^School$|^Building$")
+  if (!is.null(bldg_name_col) && bldg_name_col != bldg_irn_col) {
+    result$building_name <- trimws(df[[bldg_name_col]])
+  }
+
+  # County
+  county_col <- find_col("^County$|^COUNTY$")
+  if (!is.null(county_col)) {
+    result$county <- trimws(df[[county_col]])
+  }
+
+  # Entity type
+  if ("entity_type" %in% names(df)) {
+    result$entity_type <- df$entity_type
+  } else {
+    # Infer from presence of building IRN
+    result$entity_type <- ifelse(
+      is.na(result$building_irn) | result$building_irn == "000000",
+      "District",
+      "Building"
+    )
+  }
+
+  # === ENROLLMENT BY GRADE ===
+  # Legacy files often have grade columns directly named
+
+  grade_patterns <- list(
+    "grade_pk" = "^PK$|^Pre-?K|^PreK|^PREK",
+    "grade_k" = "^K$|^KG$|^Kindergarten|^KINDER",
+    "grade_01" = "^1$|^01$|^Grade.?1$|^G1$|^GRADE_1$|^First",
+    "grade_02" = "^2$|^02$|^Grade.?2$|^G2$|^GRADE_2$|^Second",
+    "grade_03" = "^3$|^03$|^Grade.?3$|^G3$|^GRADE_3$|^Third",
+    "grade_04" = "^4$|^04$|^Grade.?4$|^G4$|^GRADE_4$|^Fourth",
+    "grade_05" = "^5$|^05$|^Grade.?5$|^G5$|^GRADE_5$|^Fifth",
+    "grade_06" = "^6$|^06$|^Grade.?6$|^G6$|^GRADE_6$|^Sixth",
+    "grade_07" = "^7$|^07$|^Grade.?7$|^G7$|^GRADE_7$|^Seventh",
+    "grade_08" = "^8$|^08$|^Grade.?8$|^G8$|^GRADE_8$|^Eighth",
+    "grade_09" = "^9$|^09$|^Grade.?9$|^G9$|^GRADE_9$|^Ninth",
+    "grade_10" = "^10$|^Grade.?10$|^G10$|^GRADE_10$|^Tenth",
+    "grade_11" = "^11$|^Grade.?11$|^G11$|^GRADE_11$|^Eleventh",
+    "grade_12" = "^12$|^Grade.?12$|^G12$|^GRADE_12$|^Twelfth"
+  )
+
+  for (new_name in names(grade_patterns)) {
+    pattern <- grade_patterns[[new_name]]
+    grade_col <- find_col(pattern)
+    if (!is.null(grade_col)) {
+      result[[new_name]] <- safe_numeric(df[[grade_col]])
+    }
+  }
+
+  # === TOTAL ENROLLMENT ===
+  total_col <- find_col("^Total$|^Total.*Enrollment$|^Enrollment$|^TOTAL$|^TOTAL_ENR$|^Grand.*Total$")
+  if (!is.null(total_col)) {
+    result$enrollment_total <- safe_numeric(df[[total_col]])
+  } else {
+    # Calculate from grade columns if available
+    grade_cols <- names(result)[grepl("^grade_", names(result))]
+    if (length(grade_cols) > 0) {
+      result$enrollment_total <- rowSums(result[, grade_cols, drop = FALSE], na.rm = TRUE)
+      result$enrollment_total[result$enrollment_total == 0] <- NA
+    }
+  }
+
+  # === DEMOGRAPHICS (may not be available in all legacy files) ===
+
+  demo_map <- list(
+    "white" = "White|%.*White|WHITE|Caucasian",
+    "black" = "Black|African.*American|%.*Black|BLACK",
+    "hispanic" = "Hispanic|Latino|%.*Hispanic|HISPANIC",
+    "asian" = "Asian|%.*Asian|ASIAN",
+    "pacific_islander" = "Pacific.*Islander|Hawaiian|%.*Pacific|PACIFIC",
+    "native_american" = "American.*Indian|Native.*American|%.*Indian|INDIAN",
+    "multiracial" = "Multi.*Racial|Two.*More|%.*Multi|MULTI"
+  )
+
+  for (new_name in names(demo_map)) {
+    pattern <- demo_map[[new_name]]
+    count_col <- find_col(paste0("^#.*", pattern, "|^Count.*", pattern, "|^N_", toupper(new_name)))
+    pct_col <- find_col(paste0("^%.*", pattern, "|^Pct.*", pattern, "|^PCT_", toupper(new_name)))
+
+    if (!is.null(count_col)) {
+      result[[new_name]] <- safe_numeric(df[[count_col]])
+    } else if (!is.null(pct_col) && "enrollment_total" %in% names(result)) {
+      pct_val <- safe_numeric(df[[pct_col]])
+      result[[new_name]] <- round(pct_val / 100 * result$enrollment_total)
+    }
+  }
+
+  # === SPECIAL POPULATIONS (may be limited in legacy data) ===
+
+  special_map <- list(
+    "economically_disadvantaged" = "Econom.*Disadv|Low.*Income|ED|%.*Econom|Free.*Lunch|Reduced.*Lunch",
+    "disability" = "Disabilit|Special.*Ed|IEP|SWD|%.*Disab",
+    "english_learner" = "English.*Learner|EL|LEP|%.*English.*Learn|Limited.*English"
+  )
+
+  for (new_name in names(special_map)) {
+    pattern <- special_map[[new_name]]
+    count_col <- find_col(paste0("^#.*", pattern, "|^Count.*", pattern, "|^N_"))
+    pct_col <- find_col(paste0("^%.*", pattern, "|^Pct.*", pattern, "|^PCT_"))
+
+    if (!is.null(count_col)) {
+      result[[new_name]] <- safe_numeric(df[[count_col]])
+    } else if (!is.null(pct_col) && "enrollment_total" %in% names(result)) {
+      pct_val <- safe_numeric(df[[pct_col]])
+      result[[new_name]] <- round(pct_val / 100 * result$enrollment_total)
+    }
+  }
+
+  # === DISTRICT TYPE ===
+
+  dist_type_col <- find_col("District.*Type|Dist.*Type|TYPE|Type")
+  if (!is.null(dist_type_col)) {
+    result$district_type <- trimws(df[[dist_type_col]])
+  }
+
+  result
 }
 
 

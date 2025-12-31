@@ -9,13 +9,22 @@ process_enr_legacy(df, end_year)
 \arguments{
 \item{df}{Raw data frame with layout-derived column names}
 
-\item{end_year}{School year end}
+\item{end_year}{School year end (2007-2014)}
 }
 \value{
-Processed data frame
+Processed data frame with standardized columns
 }
 \description{
-Processes enrollment data from older Ohio data formats (pre-2015).
+Processes enrollment data from older Ohio data formats (2007-2014).
 Column layouts and file formats differ from modern data.
+}
+\details{
+Legacy data characteristics:
+\itemize{
+\item May use different column names (e.g., "School IRN" vs "Building IRN")
+\item May have different grade level encoding
+\item Demographics may be in percentage rather than count format
+\item Some columns present in modern data may be missing
+}
 }
 \keyword{internal}

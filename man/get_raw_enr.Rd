@@ -7,7 +7,7 @@
 get_raw_enr(end_year)
 }
 \arguments{
-\item{end_year}{School year end (2023-24 = 2024)}
+\item{end_year}{School year end (2023-24 = 2024). Valid range is 2007 to current year.}
 }
 \value{
 Raw data frame from ODEW
@@ -18,9 +18,23 @@ portal. Data includes district and building level enrollment by grade,
 demographics, and special populations.
 }
 \details{
+Data availability by year:
+\itemize{
+\item 2007-2014: Legacy format with different file naming conventions
+\item 2015-present: Modern format with consistent ENROLLMENT_BUILDING/DISTRICT files
+}
+
 Note: Ohio Report Card data access may require manual download from
 \url{https://reportcard.education.ohio.gov/download} if direct downloads
 fail. The download portal uses dynamic tokens that may prevent automated
 access.
 }
-\keyword{internal}
+\examples{
+\dontrun{
+# Get raw 2024 data
+raw_2024 <- get_raw_enr(2024)
+
+# Get historical 2010 data
+raw_2010 <- get_raw_enr(2010)
+}
+}

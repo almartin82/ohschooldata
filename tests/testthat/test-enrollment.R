@@ -49,9 +49,13 @@ test_that("list_enr_years returns valid range", {
   years <- list_enr_years()
 
   expect_true(is.integer(years) || is.numeric(years))
-  expect_true(min(years) >= 2015)
+  # Data goes back to 2007
+  expect_true(min(years) >= 2007)
+  expect_equal(min(years), 2007)
   expect_true(max(years) <= as.integer(format(Sys.Date(), "%Y")) + 1)
   expect_true(length(years) > 0)
+  # Should have at least 15+ years of data available
+  expect_true(length(years) >= 15)
 })
 
 
@@ -183,5 +187,41 @@ test_that("fetch_enr returns valid data", {
 })
 
 test_that("fetch_enr validates year parameter", {
-  expect_error(fetch_enr(2000), "2015 or later")
+  # Year must be 2007 or later (minimum supported year)
+  expect_error(fetch_enr(2000), "2007 or later")
+  expect_error(fetch_enr(2006), "2007 or later")
+})
+
+# --- Legacy data processing tests ---
+
+test_that("process_enr_legacy handles basic data frame", {
+  # Create mock legacy raw data (simulating 2014 format)
+  mock_data <- data.frame(
+    `School IRN` = c(43001, 43002),
+    `School Name` = c("Elementary School", "High School"),
+    `District IRN` = c(43752, 43752),
+    `District Name` = c("Columbus City", "Columbus City"),
+    County = c("Franklin", "Franklin"),
+    K = c(100, NA),
+    `1` = c(95, NA),
+    `2` = c(90, NA),
+    `9` = c(NA, 200),
+    `10` = c(NA, 195),
+    `11` = c(NA, 190),
+    `12` = c(NA, 180),
+    Total = c(500, 800),
+    entity_type = c("Building", "Building"),
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  result <- process_enr_legacy(mock_data, 2014)
+
+  expect_true(is.data.frame(result))
+  expect_true("building_irn" %in% names(result))
+  expect_true("district_irn" %in% names(result))
+  expect_true("enrollment_total" %in% names(result))
+  expect_equal(nrow(result), 2)
+  # Check grade parsing
+  expect_true("grade_k" %in% names(result) || "grade_09" %in% names(result))
 })

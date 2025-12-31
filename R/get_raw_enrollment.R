@@ -16,18 +16,39 @@
 #' portal. Data includes district and building level enrollment by grade,
 #' demographics, and special populations.
 #'
+#' Data availability by year:
+#' - 2007-2014: Legacy format with different file naming conventions
+#' - 2015-present: Modern format with consistent ENROLLMENT_BUILDING/DISTRICT files
+#'
 #' Note: Ohio Report Card data access may require manual download from
 #' \url{https://reportcard.education.ohio.gov/download} if direct downloads
 #' fail. The download portal uses dynamic tokens that may prevent automated
 #' access.
 #'
-#' @param end_year School year end (2023-24 = 2024)
+#' @param end_year School year end (2023-24 = 2024). Valid range is 2007 to current year.
 #' @return Raw data frame from ODEW
-#' @keywords internal
+#' @export
+#' @examples
+#' \dontrun{
+#' # Get raw 2024 data
+#' raw_2024 <- get_raw_enr(2024)
+#'
+#' # Get historical 2010 data
+#' raw_2010 <- get_raw_enr(2010)
+#' }
 get_raw_enr <- function(end_year) {
 
-  # Ohio Report Card data is available from ~2015 onwards in consistent format
-  # Earlier years have different formats and locations
+  # Validate year range
+  if (end_year < 2007) {
+    stop(paste(
+      "end_year must be 2007 or later.",
+      "Earlier data requires EMIS direct access or archived sources."
+    ))
+  }
+
+  # Ohio Report Card data format differs by era:
+  # - 2007-2014: Legacy format with various file naming patterns
+  # - 2015+: Modern format with consistent ENROLLMENT_BUILDING/DISTRICT naming
 
   if (end_year >= 2015) {
     get_raw_enr_modern(end_year)
@@ -225,64 +246,153 @@ download_ohio_excel <- function(url, type, end_year) {
 
 #' Download legacy format ODEW enrollment data
 #'
-#' Downloads enrollment data for years prior to 2015 when data formats
-#' and locations were different.
+#' Downloads enrollment data for years 2007-2014 when data formats
+#' and file naming conventions were different from modern years.
 #'
-#' @param end_year School year end
-#' @return Raw data frame
+#' Legacy data file patterns discovered through research:
+#' - 2014: "SCHOOL ENROLLMENT BY GRADE.xls", "DISTRICT ENROLLMENT BY GRADE.xls"
+#' - 2007-2013: Various patterns including "ENROLLMENT_BUILDING.xls", grade-level files
+#'
+#' @param end_year School year end (2007-2014)
+#' @return Raw data frame with enrollment data
 #' @keywords internal
 get_raw_enr_legacy <- function(end_year) {
-
-  # Legacy Ohio data is harder to access consistently
- # Try the enrollment data page on education.ohio.gov
 
   start_year <- end_year - 1
   yy_start <- substr(start_year, 3, 4)
   yy_end <- substr(end_year, 3, 4)
 
-  # Try older report card storage format
-  base_url <- paste0(
+  # Base URL for legacy data downloads
+ base_url <- paste0(
     "https://reportcardstorage.education.ohio.gov/data-download-",
     end_year, "/"
   )
 
-  # Try several potential file patterns
-  file_patterns <- c(
+  # Legacy file patterns vary significantly by year
+ # Based on research, here are the known patterns:
+  building_patterns <- c(
+    # 2014 pattern (confirmed via search)
+    "SCHOOL%20ENROLLMENT%20BY%20GRADE.xls",
+    "SCHOOL ENROLLMENT BY GRADE.xls",
+    # Other legacy patterns
     paste0(yy_start, "-", yy_end, "_Enrollment_Building.xlsx"),
+    paste0(yy_start, "-", yy_end, "_ENROLLMENT_BUILDING.xlsx"),
     paste0(yy_start, yy_end, "_Enrollment_Building.xlsx"),
+    paste0(yy_start, yy_end, "_ENROLLMENT_BUILDING.xlsx"),
+    "ENROLLMENT_BUILDING.xls",
+    "ENROLLMENT_BUILDING.xlsx",
+    "Enrollment_Building.xls",
+    "Enrollment_Building.xlsx",
     paste0("Enrollment_Building_", end_year, ".xlsx"),
-    paste0(yy_start, "-", yy_end, "_ENROLLMENT_BUILDING.xlsx")
+    paste0(yy_start, "-", yy_end, "_Building_Enrollment.xlsx"),
+    paste0("Building_Enrollment_", yy_start, "-", yy_end, ".xlsx"),
+    paste0("FY", yy_end, "_Enrollment_Building.xlsx"),
+    paste0("FY", end_year, "_Enrollment_Building.xlsx")
   )
 
-  tname <- tempfile(pattern = "ohio_legacy", tmpdir = tempdir(), fileext = ".xlsx")
+  district_patterns <- c(
+    # 2014 pattern
+    "DISTRICT%20ENROLLMENT%20BY%20GRADE.xls",
+    "DISTRICT ENROLLMENT BY GRADE.xls",
+    # Other legacy patterns
+    paste0(yy_start, "-", yy_end, "_Enrollment_District.xlsx"),
+    paste0(yy_start, "-", yy_end, "_ENROLLMENT_DISTRICT.xlsx"),
+    paste0(yy_start, yy_end, "_Enrollment_District.xlsx"),
+    paste0(yy_start, yy_end, "_ENROLLMENT_DISTRICT.xlsx"),
+    "ENROLLMENT_DISTRICT.xls",
+    "ENROLLMENT_DISTRICT.xlsx",
+    "Enrollment_District.xls",
+    "Enrollment_District.xlsx",
+    paste0("Enrollment_District_", end_year, ".xlsx"),
+    paste0(yy_start, "-", yy_end, "_District_Enrollment.xlsx"),
+    paste0("District_Enrollment_", yy_start, "-", yy_end, ".xlsx"),
+    paste0("FY", yy_end, "_Enrollment_District.xlsx"),
+    paste0("FY", end_year, "_Enrollment_District.xlsx")
+  )
 
-  for (pattern in file_patterns) {
+  # Try to download building-level data
+  building_df <- NULL
+  tname <- tempfile(pattern = "ohio_legacy_building", tmpdir = tempdir(), fileext = ".xlsx")
+
+  for (pattern in building_patterns) {
     url <- paste0(base_url, pattern)
-    result <- tryCatch({
+    building_df <- tryCatch({
       downloader::download(url, dest = tname, mode = "wb", quiet = TRUE)
       file_info <- file.info(tname)
-      if (file_info$size < 5000) next
-      df <- readxl::read_excel(tname, sheet = 1)
-      df$end_year <- end_year
-      df$entity_type <- "Building"
-      message(paste("Found legacy data at:", url))
-      df
+      if (file_info$size < 5000) {
+        NULL
+      } else {
+        # Try both xls and xlsx readers
+        df <- tryCatch(
+          readxl::read_excel(tname, sheet = 1),
+          error = function(e) NULL
+        )
+        if (!is.null(df)) {
+          message(paste("Found legacy building data at:", url))
+        }
+        df
+      }
     }, error = function(e) {
       NULL
     })
-    if (!is.null(result)) {
-      if (file.exists(tname)) unlink(tname)
-      return(result)
-    }
+    if (!is.null(building_df)) break
   }
-
-  # Clean up
   if (file.exists(tname)) unlink(tname)
 
-  stop(paste(
-    "Could not find enrollment data for year", end_year,
-    "- legacy data may not be available through the standard download portal"
-  ))
+  # Try to download district-level data
+  district_df <- NULL
+  tname <- tempfile(pattern = "ohio_legacy_district", tmpdir = tempdir(), fileext = ".xlsx")
+
+  for (pattern in district_patterns) {
+    url <- paste0(base_url, pattern)
+    district_df <- tryCatch({
+      downloader::download(url, dest = tname, mode = "wb", quiet = TRUE)
+      file_info <- file.info(tname)
+      if (file_info$size < 5000) {
+        NULL
+      } else {
+        df <- tryCatch(
+          readxl::read_excel(tname, sheet = 1),
+          error = function(e) NULL
+        )
+        if (!is.null(df)) {
+          message(paste("Found legacy district data at:", url))
+        }
+        df
+      }
+    }, error = function(e) {
+      NULL
+    })
+    if (!is.null(district_df)) break
+  }
+  if (file.exists(tname)) unlink(tname)
+
+  # Add entity type markers
+  if (!is.null(building_df)) {
+    building_df$entity_type <- "Building"
+  }
+  if (!is.null(district_df)) {
+    district_df$entity_type <- "District"
+  }
+
+  # Combine results
+  if (!is.null(district_df) && !is.null(building_df)) {
+    result <- dplyr::bind_rows(district_df, building_df)
+  } else if (!is.null(district_df)) {
+    result <- district_df
+  } else if (!is.null(building_df)) {
+    result <- building_df
+  } else {
+    stop(paste(
+      "Could not find enrollment data for year", end_year, "\n",
+      "Legacy data (2007-2014) uses varying file formats.\n",
+      "Please try downloading manually from: https://reportcard.education.ohio.gov/download\n",
+      "Then use import_local_enrollment() to load the files."
+    ))
+  }
+
+  result$end_year <- end_year
+  result
 }
 
 
@@ -291,6 +401,13 @@ get_raw_enr_legacy <- function(end_year) {
 #' Returns a vector of years for which enrollment data is likely available
 #' from the Ohio School Report Cards portal.
 #'
+#' Ohio Report Card data availability:
+#' - 2007-2014: Legacy format data (data-download-YYYY folders with varying file names)
+#' - 2015-present: Modern format with consistent ENROLLMENT_BUILDING/DISTRICT files
+#'
+#' Note: EMIS historical data extends back to the 1990s but requires different
+#' access methods. This package focuses on the Report Card download portal data.
+#'
 #' @return Integer vector of available years
 #' @export
 #' @examples
@@ -298,16 +415,20 @@ get_raw_enr_legacy <- function(end_year) {
 #' available_years <- list_enr_years()
 #' }
 list_enr_years <- function() {
-  # Ohio Report Card data is generally available from 2015 onwards
-  # Current year data typically becomes available in fall
+  # Ohio Report Card data is available from 2007 onwards in the data-download folders
+  # Legacy data (2007-2014) uses different file naming conventions
+  # Modern data (2015+) uses consistent ENROLLMENT_BUILDING/DISTRICT naming
+  # Current year data typically becomes available in fall (September)
   current_year <- as.integer(format(Sys.Date(), "%Y"))
   current_month <- as.integer(format(Sys.Date(), "%m"))
 
-  # If we're past October, current year data should be available
+  # If we're past September, current year data should be available
+  # Ohio releases report cards in mid-September
+
   max_year <- if (current_month >= 10) current_year else current_year - 1
 
-  # Return available range
-  2015:max_year
+  # Return available range - data goes back to 2007
+  2007:max_year
 }
 
 

@@ -22,6 +22,11 @@ This is an R package for fetching and processing Ohio school enrollment data fro
 ### Data Sources
 
 Data comes from https://reportcard.education.ohio.gov/download
+Storage URL: https://reportcardstorage.education.ohio.gov/data-download-YYYY/
+
+Available year range: 2007-present (2024-25 school year = end_year 2025)
+- 2007-2014: Legacy format (varying file names, grade-by-grade enrollment)
+- 2015-present: Modern format (ENROLLMENT_BUILDING.xlsx, ENROLLMENT_DISTRICT.xlsx)
 
 ## Package Conventions
 - Follow tidyverse style guide

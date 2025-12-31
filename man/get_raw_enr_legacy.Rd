@@ -7,13 +7,20 @@
 get_raw_enr_legacy(end_year)
 }
 \arguments{
-\item{end_year}{School year end}
+\item{end_year}{School year end (2007-2014)}
 }
 \value{
-Raw data frame
+Raw data frame with enrollment data
 }
 \description{
-Downloads enrollment data for years prior to 2015 when data formats
-and locations were different.
+Downloads enrollment data for years 2007-2014 when data formats
+and file naming conventions were different from modern years.
+}
+\details{
+Legacy data file patterns discovered through research:
+\itemize{
+\item 2014: "SCHOOL ENROLLMENT BY GRADE.xls", "DISTRICT ENROLLMENT BY GRADE.xls"
+\item 2007-2013: Various patterns including "ENROLLMENT_BUILDING.xls", grade-level files
+}
 }
 \keyword{internal}
