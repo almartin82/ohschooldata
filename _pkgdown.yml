@@ -21,6 +21,7 @@ reference:
   desc: Download enrollment data from ODEW
   contents:
   - fetch_enr
+  - fetch_enr_multi
   - fetch_enr_range
   - get_available_years
   - get_state_enrollment
