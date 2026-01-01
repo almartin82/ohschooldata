@@ -40,6 +40,8 @@ purrr::map_df(2015:2024, fetch_enr) |>
 #> 10    2024    1635241
 ```
 
+![Ohio statewide enrollment trend](https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/state-trend-plot-1.png)
+
 ---
 
 ### 2. Columbus City Schools Lost 15,000 Students
@@ -62,6 +64,8 @@ fetch_enr(2024) |>
 ```
 
 Meanwhile, **Olentangy Local SD** grew from 18,000 to 25,000 students.
+
+![Major Ohio urban district enrollment trends](https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/major-district-plot-1.png)
 
 ---
 
@@ -139,6 +143,8 @@ purrr::map_df(c(2015, 2020, 2024), fetch_enr) |>
 #> 3     2024     129187  7.9
 ```
 
+![Ohio statewide enrollment by race/ethnicity](https://almartin82.github.io/ohschooldata/articles/quickstart_files/figure-html/viz-demographics-1.png)
+
 ---
 
 ### 7. Joint Vocational School Districts Serve 70,000
@@ -182,6 +188,8 @@ purrr::map_df(2019:2024, fetch_enr) |>
 
 **-10,398 kindergartners** compared to pre-pandemic levels.
 
+![Year-over-year enrollment change](https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/yoy-change-plot-1.png)
+
 ---
 
 ### 9. English Learners Growing in Unexpected Places
@@ -224,6 +232,8 @@ fetch_enr(2024) |>
 #> 4 Summit    76234
 #> 5 Montgomery 68921
 ```
+
+![Top 10 Ohio counties by total enrollment](https://almartin82.github.io/ohschooldata/articles/quickstart_files/figure-html/viz-county-1.png)
 
 ---
 
