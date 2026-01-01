@@ -28,6 +28,7 @@ reference:
   - fetch_enr_multi
   - fetch_enr_range
   - get_available_years
+  - get_raw_enr
   - get_state_enrollment
   - import_local_enrollment
   - list_enr_years
