@@ -20,6 +20,6 @@ Convenience function to filter enrollment data to a specific Ohio county.
 \examples{
 \dontrun{
 # Get Franklin County schools
-franklin <- fetch_enr(2024) \%>\% filter_county("Franklin")
+franklin <- fetch_enr(2024) |> filter_county("Franklin")
 }
 }
