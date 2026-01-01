@@ -2,12 +2,13 @@
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/almartin82/ohschooldata/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/almartin82/ohschooldata/actions/workflows/R-CMD-check.yaml)
+[![Python Tests](https://github.com/almartin82/ohschooldata/actions/workflows/python-test.yaml/badge.svg)](https://github.com/almartin82/ohschooldata/actions/workflows/python-test.yaml)
 [![pkgdown](https://github.com/almartin82/ohschooldata/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/almartin82/ohschooldata/actions/workflows/pkgdown.yaml)
 <!-- badges: end -->
 
 **[Documentation](https://almartin82.github.io/ohschooldata/)** | [GitHub](https://github.com/almartin82/ohschooldata)
 
-An R package for accessing Ohio school enrollment data from the Ohio Department of Education and Workforce (ODEW). **10 years of data** (2015-2025) for every school, district, and the state.
+Fetch and analyze Ohio school enrollment data from [ODEW](https://education.ohio.gov/) in R or Python. **10 years of data** (2015-2025) for every school, district, and the state.
 
 ## What can you find with ohschooldata?
 
@@ -246,6 +247,8 @@ devtools::install_github("almartin82/ohschooldata")
 
 ## Quick Start
 
+### R
+
 ```r
 library(ohschooldata)
 library(dplyr)
@@ -271,6 +274,30 @@ columbus <- enr |> filter_district("043752")
 
 # Filter by county
 hamilton <- enr |> filter_county("Hamilton")
+```
+
+### Python
+
+```python
+import pyohschooldata as oh
+
+# Fetch 2024 data (2023-24 school year)
+enr = oh.fetch_enr(2024)
+
+# Statewide total
+total = enr[(enr['is_state'] == True) &
+            (enr['subgroup'] == 'total_enrollment') &
+            (enr['grade_level'] == 'TOTAL')]['n_students'].sum()
+print(f"{total:,} students")
+#> 1,635,241 students
+
+# Get multiple years
+enr_multi = oh.fetch_enr_multi([2020, 2021, 2022, 2023, 2024])
+
+# Check available years
+years = oh.get_available_years()
+print(f"Data available: {years['min_year']}-{years['max_year']}")
+#> Data available: 2015-2025
 ```
 
 ## Data Availability
