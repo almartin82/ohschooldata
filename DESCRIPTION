@@ -1,11 +1,10 @@
 Package: ohschooldata
-Title: Fetch and Process Ohio School Data
+Title: Ohio School Data
 Version: 0.1.0
 Authors@R:
     person("Al", "Martin", , "almartin@example.com", role = c("aut", "cre"))
-Description: Downloads and processes school data from the Ohio Department of
-    Education and Workforce (ODEW). Provides functions for fetching enrollment
-    data and transforming it into tidy format for analysis.
+Description: A simple, consistent interface for accessing Ohio
+    school data in R.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
