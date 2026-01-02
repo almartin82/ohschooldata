@@ -1,0 +1,446 @@
+## ----setup, include=FALSE-----------------------------------------------------
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = TRUE,
+  warning = TRUE,
+  fig.width = 8,
+  fig.height = 5,
+  cache = TRUE,
+  eval = FALSE
+)
+
+# Note: Set eval = TRUE above and re-render if you have data available locally
+
+## ----load-packages------------------------------------------------------------
+# library(ohschooldata)
+# library(dplyr)
+# library(ggplot2)
+# library(scales)
+# library(tidyr)
+
+## ----fetch-data---------------------------------------------------------------
+# # Get available years
+# available_years <- list_enr_years()
+# message(paste("Available years:", paste(available_years, collapse = ", ")))
+# 
+# # Fetch all available years
+# years_to_fetch <- available_years
+# 
+# # Try to fetch data for each year, handling errors gracefully
+# all_enr <- purrr::map_df(years_to_fetch, function(y) {
+#   tryCatch({
+#     message(paste("Fetching year:", y))
+#     fetch_enr(y, tidy = TRUE, use_cache = TRUE)
+#   }, error = function(e) {
+#     warning(paste("Could not fetch data for", y, ":", e$message))
+#     NULL
+#   })
+# })
+# 
+# # Check if we got any data
+# if (nrow(all_enr) == 0) {
+#   message("WARNING: No enrollment data could be fetched.")
+#   message("This is likely due to Ohio's data access restrictions.")
+#   message("Please download data manually from: https://reportcard.education.ohio.gov/download")
+#   data_available <- FALSE
+# } else {
+#   data_available <- TRUE
+#   # Verify years fetched
+#   years_fetched <- unique(all_enr$end_year)
+#   message(paste("Successfully fetched years:", paste(sort(years_fetched), collapse = ", ")))
+# }
+
+## ----statewide-trend----------------------------------------------------------
+# # Calculate statewide totals by year
+# state_totals <- all_enr %>%
+#   filter(
+#     entity_type == "District",
+#     subgroup == "total_enrollment",
+#     grade_level == "TOTAL"
+#   ) %>%
+#   group_by(end_year) %>%
+#   summarize(
+#     n_districts = n_distinct(district_irn),
+#     total_enrollment = sum(n_students, na.rm = TRUE),
+#     .groups = "drop"
+#   ) %>%
+#   arrange(end_year) %>%
+#   mutate(
+#     yoy_change = total_enrollment - lag(total_enrollment),
+#     yoy_pct_change = (total_enrollment / lag(total_enrollment) - 1) * 100
+#   )
+# 
+# # Display the trend
+# knitr::kable(
+#   state_totals,
+#   col.names = c("Year", "Districts", "Total Enrollment", "YoY Change", "YoY % Change"),
+#   format.args = list(big.mark = ","),
+#   digits = 2,
+#   caption = "Ohio Statewide Enrollment Trend"
+# )
+
+## ----state-trend-plot, fig.cap="Ohio Statewide Enrollment Over Time"----------
+# ggplot(state_totals, aes(x = end_year, y = total_enrollment)) +
+#   geom_line(color = "steelblue", linewidth = 1.2) +
+#   geom_point(color = "steelblue", size = 3) +
+#   scale_y_continuous(labels = comma, limits = c(0, NA)) +
+#   scale_x_continuous(breaks = state_totals$end_year) +
+#   labs(
+#     title = "Ohio Statewide K-12 Enrollment",
+#     subtitle = "District-level totals aggregated by year",
+#     x = "School Year (End Year)",
+#     y = "Total Enrollment"
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+## ----flag-jumps---------------------------------------------------------------
+# # Identify years with >5% change
+# large_changes <- state_totals %>%
+#   filter(abs(yoy_pct_change) > 5)
+# 
+# if (nrow(large_changes) > 0) {
+#   message("WARNING: Found years with >5% year-over-year change:")
+#   print(large_changes)
+# } else {
+#   message("No statewide year-over-year changes exceed 5%.")
+# }
+
+## ----yoy-change-plot, fig.cap="Year-over-Year Enrollment Change"--------------
+# state_totals_filtered <- state_totals %>% filter(!is.na(yoy_pct_change))
+# 
+# if (nrow(state_totals_filtered) > 0) {
+#   ggplot(state_totals_filtered, aes(x = end_year, y = yoy_pct_change)) +
+#     geom_col(aes(fill = yoy_pct_change > 0)) +
+#     geom_hline(yintercept = c(-5, 5), linetype = "dashed", color = "red", alpha = 0.7) +
+#     geom_hline(yintercept = 0, color = "black") +
+#     scale_fill_manual(values = c("TRUE" = "darkgreen", "FALSE" = "darkred"), guide = "none") +
+#     scale_x_continuous(breaks = state_totals_filtered$end_year) +
+#     labs(
+#       title = "Year-over-Year Enrollment Change",
+#       subtitle = "Red dashed lines indicate +/- 5% threshold",
+#       x = "School Year (End Year)",
+#       y = "Percent Change (%)"
+#     ) +
+#     theme_minimal() +
+#     theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# }
+
+## ----identify-major-districts-------------------------------------------------
+# # Get most recent year for district lookup
+# latest_year <- max(all_enr$end_year, na.rm = TRUE)
+# 
+# # Get district totals for most recent year
+# district_totals <- all_enr %>%
+#   filter(
+#     end_year == latest_year,
+#     entity_type == "District",
+#     subgroup == "total_enrollment",
+#     grade_level == "TOTAL"
+#   ) %>%
+#   arrange(desc(n_students)) %>%
+#   select(district_irn, district_name, county, n_students)
+# 
+# # Display top 10 districts
+# knitr::kable(
+#   head(district_totals, 10),
+#   col.names = c("IRN", "District Name", "County", "Enrollment"),
+#   format.args = list(big.mark = ","),
+#   caption = paste("Top 10 Ohio Districts by Enrollment (", latest_year, ")")
+# )
+
+## ----define-target-districts--------------------------------------------------
+# # Search for our target districts by name pattern
+# target_patterns <- c(
+#   "Columbus City" = "Columbus City",
+#   "Cleveland Municipal" = "Cleveland",
+#   "Cincinnati Public" = "Cincinnati",
+#   "Toledo Public" = "Toledo",
+#   "Akron Public" = "Akron"
+# )
+# 
+# # Find IRNs for each target district
+# target_districts <- purrr::map_df(names(target_patterns), function(name) {
+#   pattern <- target_patterns[name]
+#   match <- district_totals %>%
+#     filter(grepl(pattern, district_name, ignore.case = TRUE)) %>%
+#     head(1)
+#   if (nrow(match) > 0) {
+#     match$target_name <- name
+#     match
+#   } else {
+#     NULL
+#   }
+# })
+# 
+# if (nrow(target_districts) > 0) {
+#   knitr::kable(
+#     target_districts %>% select(target_name, district_irn, district_name, county),
+#     col.names = c("Target", "IRN", "Full Name", "County"),
+#     caption = "Major Ohio Urban Districts Identified"
+#   )
+# } else {
+#   message("WARNING: Could not identify target districts.")
+# }
+
+## ----major-district-trends----------------------------------------------------
+# # Get time series for target districts
+# if (nrow(target_districts) > 0) {
+#   target_irns <- target_districts$district_irn
+# 
+#   major_district_trends <- all_enr %>%
+#     filter(
+#       district_irn %in% target_irns,
+#       entity_type == "District",
+#       subgroup == "total_enrollment",
+#       grade_level == "TOTAL"
+#     ) %>%
+#     left_join(
+#       target_districts %>% select(district_irn, target_name),
+#       by = "district_irn"
+#     ) %>%
+#     select(end_year, target_name, district_name, n_students) %>%
+#     arrange(target_name, end_year)
+# 
+#   # Calculate YoY changes for each district
+#   major_district_yoy <- major_district_trends %>%
+#     group_by(target_name) %>%
+#     arrange(end_year) %>%
+#     mutate(
+#       yoy_change = n_students - lag(n_students),
+#       yoy_pct_change = (n_students / lag(n_students) - 1) * 100
+#     ) %>%
+#     ungroup()
+# }
+
+## ----major-district-plot, fig.cap="Major District Enrollment Trends", fig.height=6----
+# if (exists("major_district_trends") && nrow(major_district_trends) > 0) {
+#   ggplot(major_district_trends, aes(x = end_year, y = n_students, color = target_name)) +
+#     geom_line(linewidth = 1) +
+#     geom_point(size = 2) +
+#     scale_y_continuous(labels = comma) +
+#     scale_x_continuous(breaks = unique(major_district_trends$end_year)) +
+#     labs(
+#       title = "Major Ohio Urban District Enrollment Trends",
+#       x = "School Year (End Year)",
+#       y = "Total Enrollment",
+#       color = "District"
+#     ) +
+#     theme_minimal() +
+#     theme(
+#       axis.text.x = element_text(angle = 45, hjust = 1),
+#       legend.position = "bottom"
+#     )
+# }
+
+## ----district-large-changes---------------------------------------------------
+# if (exists("major_district_yoy")) {
+#   large_district_changes <- major_district_yoy %>%
+#     filter(abs(yoy_pct_change) > 5) %>%
+#     arrange(target_name, end_year)
+# 
+#   if (nrow(large_district_changes) > 0) {
+#     message("WARNING: Found major district years with >5% year-over-year change:")
+#     knitr::kable(
+#       large_district_changes %>%
+#         select(end_year, target_name, n_students, yoy_change, yoy_pct_change),
+#       col.names = c("Year", "District", "Enrollment", "YoY Change", "YoY %"),
+#       format.args = list(big.mark = ","),
+#       digits = 2,
+#       caption = "Major District Years with >5% Enrollment Change"
+#     )
+#   } else {
+#     message("No major district year-over-year changes exceed 5%.")
+#   }
+# }
+
+## ----district-summary-table---------------------------------------------------
+# if (exists("major_district_trends") && nrow(major_district_trends) > 0) {
+#   # Create wide summary table
+#   district_summary <- major_district_trends %>%
+#     select(end_year, target_name, n_students) %>%
+#     pivot_wider(names_from = end_year, values_from = n_students)
+# 
+#   knitr::kable(
+#     district_summary,
+#     format.args = list(big.mark = ","),
+#     caption = "Major District Enrollment by Year"
+#   )
+# }
+
+## ----missing-values-----------------------------------------------------------
+# # Check for missing values in key columns
+# missing_summary <- all_enr %>%
+#   summarize(
+#     total_rows = n(),
+#     missing_district_irn = sum(is.na(district_irn)),
+#     missing_district_name = sum(is.na(district_name)),
+#     missing_n_students = sum(is.na(n_students)),
+#     missing_county = sum(is.na(county)),
+#     pct_missing_students = round(100 * sum(is.na(n_students)) / n(), 2)
+#   )
+# 
+# knitr::kable(
+#   missing_summary,
+#   col.names = c("Total Rows", "Missing IRN", "Missing Name", "Missing Students",
+#                 "Missing County", "% Missing Students"),
+#   caption = "Missing Value Summary"
+# )
+
+## ----missing-by-year----------------------------------------------------------
+# missing_by_year <- all_enr %>%
+#   group_by(end_year) %>%
+#   summarize(
+#     total_rows = n(),
+#     missing_n_students = sum(is.na(n_students)),
+#     pct_missing = round(100 * missing_n_students / total_rows, 2),
+#     .groups = "drop"
+#   )
+# 
+# knitr::kable(
+#   missing_by_year,
+#   col.names = c("Year", "Total Rows", "Missing Students", "% Missing"),
+#   caption = "Missing Values by Year"
+# )
+
+## ----zero-enrollment----------------------------------------------------------
+# # Check for districts with zero total enrollment
+# zero_enrollment <- all_enr %>%
+#   filter(
+#     entity_type == "District",
+#     subgroup == "total_enrollment",
+#     grade_level == "TOTAL",
+#     n_students == 0
+#   ) %>%
+#   select(end_year, district_irn, district_name, county, n_students) %>%
+#   arrange(end_year, district_name)
+# 
+# if (nrow(zero_enrollment) > 0) {
+#   message(paste("Found", nrow(zero_enrollment), "district-years with zero enrollment:"))
+#   knitr::kable(
+#     head(zero_enrollment, 20),
+#     col.names = c("Year", "IRN", "District Name", "County", "Enrollment"),
+#     caption = "Districts with Zero Enrollment (first 20)"
+#   )
+# } else {
+#   message("No districts with zero enrollment found.")
+# }
+
+## ----duplicate-check----------------------------------------------------------
+# # Check for duplicate district-year-subgroup-grade combinations
+# duplicates <- all_enr %>%
+#   filter(entity_type == "District") %>%
+#   group_by(end_year, district_irn, subgroup, grade_level) %>%
+#   filter(n() > 1) %>%
+#   ungroup()
+# 
+# if (nrow(duplicates) > 0) {
+#   message(paste("WARNING: Found", nrow(duplicates), "duplicate records"))
+#   knitr::kable(
+#     head(duplicates, 10),
+#     caption = "Sample Duplicate Records"
+#   )
+# } else {
+#   message("No duplicate records found.")
+# }
+
+## ----subgroup-coverage--------------------------------------------------------
+# # Check which subgroups are available each year
+# subgroup_coverage <- all_enr %>%
+#   filter(grade_level == "TOTAL") %>%
+#   group_by(end_year, subgroup) %>%
+#   summarize(
+#     n_records = n(),
+#     total_students = sum(n_students, na.rm = TRUE),
+#     .groups = "drop"
+#   ) %>%
+#   pivot_wider(
+#     names_from = end_year,
+#     values_from = n_records,
+#     values_fill = 0
+#   )
+# 
+# knitr::kable(
+#   subgroup_coverage,
+#   caption = "Subgroup Record Counts by Year"
+# )
+
+## ----demographic-trends-------------------------------------------------------
+# # Calculate statewide demographic percentages
+# demographics <- all_enr %>%
+#   filter(
+#     entity_type == "District",
+#     grade_level == "TOTAL",
+#     subgroup %in% c("white", "black", "hispanic", "asian", "multiracial", "total_enrollment")
+#   ) %>%
+#   group_by(end_year, subgroup) %>%
+#   summarize(
+#     total = sum(n_students, na.rm = TRUE),
+#     .groups = "drop"
+#   ) %>%
+#   pivot_wider(names_from = subgroup, values_from = total)
+# 
+# # Calculate percentages if columns exist
+# if ("total_enrollment" %in% names(demographics)) {
+#   demo_cols <- intersect(c("white", "black", "hispanic", "asian", "multiracial"), names(demographics))
+#   for (col in demo_cols) {
+#     demographics[[paste0(col, "_pct")]] <- round(100 * demographics[[col]] / demographics$total_enrollment, 1)
+#   }
+# 
+#   # Show percentage trends
+#   pct_cols <- paste0(demo_cols, "_pct")
+#   pct_cols <- pct_cols[pct_cols %in% names(demographics)]
+# 
+#   if (length(pct_cols) > 0) {
+#     knitr::kable(
+#       demographics %>% select(end_year, all_of(pct_cols)),
+#       caption = "Statewide Demographic Percentages by Year"
+#     )
+#   }
+# }
+
+## ----issues-summary-----------------------------------------------------------
+# issues <- list()
+# 
+# # Check for statewide jumps
+# if (exists("large_changes") && nrow(large_changes) > 0) {
+#   issues$statewide_jumps <- paste(
+#     "Statewide enrollment changes >5% detected in years:",
+#     paste(large_changes$end_year, collapse = ", ")
+#   )
+# }
+# 
+# # Check for district jumps
+# if (exists("large_district_changes") && nrow(large_district_changes) > 0) {
+#   issues$district_jumps <- paste(
+#     "Major district enrollment changes >5% detected:",
+#     nrow(large_district_changes), "instances"
+#   )
+# }
+# 
+# # Check for missing data
+# if (missing_summary$pct_missing_students > 5) {
+#   issues$missing_data <- paste(
+#     "High percentage of missing student counts:",
+#     missing_summary$pct_missing_students, "%"
+#   )
+# }
+# 
+# # Check for duplicates
+# if (nrow(duplicates) > 0) {
+#   issues$duplicates <- paste("Duplicate records found:", nrow(duplicates))
+# }
+# 
+# # Report issues
+# if (length(issues) > 0) {
+#   message("DATA QUALITY ISSUES DETECTED:")
+#   for (issue_name in names(issues)) {
+#     message(paste(" -", issues[[issue_name]]))
+#   }
+# } else {
+#   message("No major data quality issues detected.")
+# }
+
+## ----session-info-------------------------------------------------------------
+# sessionInfo()
+

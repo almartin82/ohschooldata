@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Getting Started with ohschooldata</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Getting Started with ohschooldata</h1>
+
+
+
+<div id="overview" class="section level2">
+<h2>Overview</h2>
+<p>The <code>ohschooldata</code> package provides tools for fetching and
+analyzing Ohio school enrollment data from the Ohio Department of
+Education and Workforce (ODEW). This vignette covers:</p>
+<ol style="list-style-type: decimal">
+<li>Installation and setup</li>
+<li>Basic data fetching</li>
+<li>Understanding the data schema</li>
+<li>Working with IRN codes</li>
+<li>Filtering and analysis</li>
+<li>Visualization examples</li>
+</ol>
+</div>
+<div id="installation" class="section level2">
+<h2>Installation</h2>
+<p>Install from GitHub:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># install.packages(&quot;remotes&quot;)</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;almartin82/ohschooldata&quot;</span>)</span></code></pre></div>
+<p>Load the package along with helpful companions:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(ohschooldata)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code></pre></div>
+</div>
+<div id="data-access-note" class="section level2">
+<h2>Data Access Note</h2>
+<p><strong>Important</strong>: The Ohio Department of Education and
+Workforce Report Card portal uses dynamic tokens for file access. If
+automated downloads fail, you may need to: 1. Visit <a href="https://reportcard.education.ohio.gov/download">https://reportcard.education.ohio.gov/download</a>
+2. Select year and download Enrollment files manually 3. Use
+<code>import_local_enrollment()</code> to load the downloaded files</p>
+</div>
+<div id="basic-data-fetching" class="section level2">
+<h2>Basic Data Fetching</h2>
+<div id="fetch-a-single-year" class="section level3">
+<h3>Fetch a Single Year</h3>
+<p>The main function is <code>fetch_enr()</code>, which downloads and
+processes enrollment data:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Fetch 2024 enrollment data (2023-24 school year)</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>enr <span class="ot">&lt;-</span> <span class="fu">fetch_enr</span>(<span class="dv">2024</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co"># View the first few rows</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="fu">head</span>(enr)</span></code></pre></div>
+</div>
+<div id="understanding-the-year-parameter" class="section level3">
+<h3>Understanding the Year Parameter</h3>
+<p>The <code>end_year</code> parameter represents the end of the
+academic year:</p>
+<ul>
+<li><code>2024</code> = 2023-24 school year</li>
+<li><code>2023</code> = 2022-23 school year</li>
+<li>etc.</li>
+</ul>
+</div>
+<div id="check-available-years" class="section level3">
+<h3>Check Available Years</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># See which years are available</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">list_enr_years</span>()</span></code></pre></div>
+<p>Data is generally available from 2015 onwards.</p>
+</div>
+</div>
+<div id="understanding-the-data-schema" class="section level2">
+<h2>Understanding the Data Schema</h2>
+<div id="tidy-format-default" class="section level3">
+<h3>Tidy Format (Default)</h3>
+<p>By default, <code>fetch_enr()</code> returns data in <strong>tidy
+(long) format</strong>. Each row represents a single observation for one
+entity, grade level, and subgroup combination.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># Key columns in tidy format</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>enr <span class="sc">%&gt;%</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="fu">select</span>(end_year, district_irn, building_irn, district_name,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>         entity_type, grade_level, subgroup, n_students, pct) <span class="sc">%&gt;%</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>)</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>end_year</code></td>
+<td>School year end (e.g., 2024 for 2023-24)</td>
+</tr>
+<tr class="even">
+<td><code>district_irn</code></td>
+<td>6-digit district IRN</td>
+</tr>
+<tr class="odd">
+<td><code>building_irn</code></td>
+<td>6-digit building IRN (NA for district-level)</td>
+</tr>
+<tr class="even">
+<td><code>district_name</code></td>
+<td>Name of the district</td>
+</tr>
+<tr class="odd">
+<td><code>building_name</code></td>
+<td>Name of the building (NA for district-level)</td>
+</tr>
+<tr class="even">
+<td><code>entity_type</code></td>
+<td>“State”, “District”, or “Building”</td>
+</tr>
+<tr class="odd">
+<td><code>county</code></td>
+<td>Ohio county name</td>
+</tr>
+<tr class="even">
+<td><code>grade_level</code></td>
+<td>Grade level (“TOTAL”, “PK”, “K”, “01”-“12”)</td>
+</tr>
+<tr class="odd">
+<td><code>subgroup</code></td>
+<td>Demographic or population subgroup</td>
+</tr>
+<tr class="even">
+<td><code>n_students</code></td>
+<td>Student count</td>
+</tr>
+<tr class="odd">
+<td><code>pct</code></td>
+<td>Percentage of total enrollment</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="subgroups" class="section level3">
+<h3>Subgroups</h3>
+<p>The <code>subgroup</code> column identifies demographic
+categories:</p>
+<ul>
+<li><code>total_enrollment</code>: Total student count</li>
+<li><strong>Race/Ethnicity</strong>: <code>white</code>,
+<code>black</code>, <code>hispanic</code>, <code>asian</code>,
+<code>native_american</code>, <code>pacific_islander</code>,
+<code>multiracial</code></li>
+<li><strong>Special Populations</strong>:
+<code>economically_disadvantaged</code>, <code>disability</code>,
+<code>english_learner</code>, <code>gifted</code>, <code>migrant</code>,
+<code>homeless</code></li>
+</ul>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># See all subgroups</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>enr <span class="sc">%&gt;%</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="fu">distinct</span>(subgroup) <span class="sc">%&gt;%</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="fu">pull</span>(subgroup)</span></code></pre></div>
+</div>
+<div id="wide-format" class="section level3">
+<h3>Wide Format</h3>
+<p>If you prefer one column per demographic (wide format):</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Fetch in wide format</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>enr_wide <span class="ot">&lt;-</span> <span class="fu">fetch_enr</span>(<span class="dv">2024</span>, <span class="at">tidy =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co"># View demographic columns</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>enr_wide <span class="sc">%&gt;%</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="fu">filter</span>(entity_type <span class="sc">==</span> <span class="st">&quot;State&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="fu">select</span>(end_year, enrollment_total, white, black, hispanic, asian,</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>         economically_disadvantaged)</span></code></pre></div>
+<p>You can also convert between formats:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># Convert wide to tidy</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>enr_tidy <span class="ot">&lt;-</span> <span class="fu">tidy_enr</span>(enr_wide)</span></code></pre></div>
+</div>
+</div>
+<div id="understanding-irn-codes" class="section level2">
+<h2>Understanding IRN Codes</h2>
+<p>Ohio uses <strong>IRN (Information Retrieval Number)</strong> as the
+unique identifier for all educational entities.</p>
+<div id="what-is-an-irn" class="section level3">
+<h3>What is an IRN?</h3>
+<ul>
+<li>IRNs are <strong>6-digit codes</strong> (with leading zeros if
+necessary)</li>
+<li>Every district has a unique district IRN</li>
+<li>Every building (school) has a unique building IRN</li>
+<li>Examples:
+<ul>
+<li>Columbus City Schools: <code>043752</code></li>
+<li>Cleveland Metropolitan: <code>043786</code></li>
+<li>Cincinnati City: <code>043802</code></li>
+</ul></li>
+</ul>
+</div>
+<div id="working-with-irns" class="section level3">
+<h3>Working with IRNs</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># Validate an IRN</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">is_valid_irn</span>(<span class="st">&quot;043752&quot;</span>)  <span class="co"># TRUE</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="fu">is_valid_irn</span>(<span class="st">&quot;12345&quot;</span>)   <span class="co"># FALSE (only 5 digits)</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co"># Format a numeric IRN with leading zeros</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="fu">format_irn</span>(<span class="dv">43752</span>)       <span class="co"># &quot;043752&quot;</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="fu">format_irn</span>(<span class="st">&quot;43752&quot;</span>)     <span class="co"># &quot;043752&quot;</span></span></code></pre></div>
+</div>
+<div id="finding-district-irns" class="section level3">
+<h3>Finding District IRNs</h3>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Search for a district by name</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>enr <span class="sc">%&gt;%</span></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="fu">filter</span>(is_district, subgroup <span class="sc">==</span> <span class="st">&quot;total_enrollment&quot;</span>, grade_level <span class="sc">==</span> <span class="st">&quot;TOTAL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">grepl</span>(<span class="st">&quot;Columbus&quot;</span>, district_name, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  <span class="fu">select</span>(district_irn, district_name, county, n_students)</span></code></pre></div>
+</div>
+</div>
+<div id="filtering-data" class="section level2">
+<h2>Filtering Data</h2>
+<div id="aggregation-level-flags" class="section level3">
+<h3>Aggregation Level Flags</h3>
+<p>The data includes boolean flags to identify aggregation levels:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># State totals</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>state <span class="ot">&lt;-</span> enr <span class="sc">%&gt;%</span> <span class="fu">filter</span>(is_state)</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="co"># All districts (excluding state totals)</span></span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>districts <span class="ot">&lt;-</span> enr <span class="sc">%&gt;%</span> <span class="fu">filter</span>(is_district)</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a><span class="co"># All buildings (individual schools)</span></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>buildings <span class="ot">&lt;-</span> enr <span class="sc">%&gt;%</span> <span class="fu">filter</span>(is_building)</span></code></pre></div>
+</div>
+<div id="ohio-school-type-flags" class="section level3">
+<h3>Ohio School Type Flags</h3>
+<p>Ohio has several distinct school types:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># Traditional public districts</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>traditional <span class="ot">&lt;-</span> enr <span class="sc">%&gt;%</span> <span class="fu">filter</span>(is_traditional, is_district)</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co"># Community schools (Ohio&#39;s term for charter schools)</span></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>community <span class="ot">&lt;-</span> enr <span class="sc">%&gt;%</span> <span class="fu">filter</span>(is_community_school, is_district)</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="co"># Joint Vocational School Districts (JVSDs) - Career-technical centers</span></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>jvsd <span class="ot">&lt;-</span> enr <span class="sc">%&gt;%</span> <span class="fu">filter</span>(is_jvsd, is_district)</span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="co"># STEM schools</span></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a>stem <span class="ot">&lt;-</span> enr <span class="sc">%&gt;%</span> <span class="fu">filter</span>(is_stem, is_district)</span></code></pre></div>
+</div>
+<div id="filter-by-district" class="section level3">
+<h3>Filter by District</h3>
+<p>Use <code>filter_district()</code> to get all data for a specific
+district:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># Get Columbus City Schools (district + all buildings)</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>columbus <span class="ot">&lt;-</span> enr <span class="sc">%&gt;%</span> <span class="fu">filter_district</span>(<span class="st">&quot;043752&quot;</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="co"># Get district-level only (no buildings)</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>columbus_district <span class="ot">&lt;-</span> enr <span class="sc">%&gt;%</span> <span class="fu">filter_district</span>(<span class="st">&quot;043752&quot;</span>, <span class="at">include_buildings =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+</div>
+<div id="filter-by-county" class="section level3">
+<h3>Filter by County</h3>
+<p>Use <code>filter_county()</code> to get all entities in a county:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># Get all Franklin County districts and schools</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>franklin <span class="ot">&lt;-</span> enr <span class="sc">%&gt;%</span> <span class="fu">filter_county</span>(<span class="st">&quot;Franklin&quot;</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="co"># Count districts by county</span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>enr <span class="sc">%&gt;%</span></span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>  <span class="fu">filter</span>(is_district, subgroup <span class="sc">==</span> <span class="st">&quot;total_enrollment&quot;</span>, grade_level <span class="sc">==</span> <span class="st">&quot;TOTAL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>  <span class="fu">count</span>(county, <span class="at">sort =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>)</span></code></pre></div>
+</div>
+</div>
+<div id="multi-year-analysis" class="section level2">
+<h2>Multi-Year Analysis</h2>
+<div id="fetch-multiple-years" class="section level3">
+<h3>Fetch Multiple Years</h3>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co"># Fetch a range of years</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>enr_history <span class="ot">&lt;-</span> <span class="fu">fetch_enr_range</span>(<span class="dv">2020</span>, <span class="dv">2024</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="co"># Or use purrr for more control</span></span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>enr_multi <span class="ot">&lt;-</span> <span class="fu">map_df</span>(<span class="dv">2020</span><span class="sc">:</span><span class="dv">2024</span>, fetch_enr)</span></code></pre></div>
+</div>
+<div id="statewide-trends" class="section level3">
+<h3>Statewide Trends</h3>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># Get statewide summary for multiple years</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>state_trend <span class="ot">&lt;-</span> <span class="fu">get_state_enrollment</span>(<span class="dv">2020</span><span class="sc">:</span><span class="dv">2024</span>)</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>state_trend</span></code></pre></div>
+</div>
+</div>
+<div id="grade-level-analysis" class="section level2">
+<h2>Grade Level Analysis</h2>
+<div id="individual-grades" class="section level3">
+<h3>Individual Grades</h3>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="co"># Enrollment by grade for state totals</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>enr <span class="sc">%&gt;%</span></span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>  <span class="fu">filter</span>(is_state, subgroup <span class="sc">==</span> <span class="st">&quot;total_enrollment&quot;</span>, grade_level <span class="sc">!=</span> <span class="st">&quot;TOTAL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>  <span class="fu">select</span>(grade_level, n_students) <span class="sc">%&gt;%</span></span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>  <span class="fu">arrange</span>(grade_level)</span></code></pre></div>
+</div>
+<div id="grade-aggregates" class="section level3">
+<h3>Grade Aggregates</h3>
+<p>Create common grade-level groupings (K-8, 9-12, K-12):</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="co"># Create grade aggregates</span></span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>grade_aggs <span class="ot">&lt;-</span> <span class="fu">enr_grade_aggs</span>(enr)</span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a><span class="co"># View K-8 vs High School for state</span></span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a>grade_aggs <span class="sc">%&gt;%</span></span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a>  <span class="fu">filter</span>(is_state) <span class="sc">%&gt;%</span></span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a>  <span class="fu">select</span>(grade_level, n_students)</span></code></pre></div>
+</div>
+</div>
+<div id="visualization-examples" class="section level2">
+<h2>Visualization Examples</h2>
+<div id="top-districts-by-enrollment" class="section level3">
+<h3>Top Districts by Enrollment</h3>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="co"># Top 15 districts by enrollment</span></span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a>top_districts <span class="ot">&lt;-</span> enr <span class="sc">%&gt;%</span></span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a>  <span class="fu">filter</span>(is_district, subgroup <span class="sc">==</span> <span class="st">&quot;total_enrollment&quot;</span>, grade_level <span class="sc">==</span> <span class="st">&quot;TOTAL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(n_students)) <span class="sc">%&gt;%</span></span>
+<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">15</span>)</span>
+<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a></span>
+<span id="cb19-7"><a href="#cb19-7" tabindex="-1"></a><span class="fu">ggplot</span>(top_districts, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(district_name, n_students), <span class="at">y =</span> n_students)) <span class="sc">+</span></span>
+<span id="cb19-8"><a href="#cb19-8" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">fill =</span> <span class="st">&quot;steelblue&quot;</span>) <span class="sc">+</span></span>
+<span id="cb19-9"><a href="#cb19-9" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> scales<span class="sc">::</span><span class="fu">comma</span>(n_students)), <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.1</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb19-10"><a href="#cb19-10" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb19-11"><a href="#cb19-11" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma, <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.15</span>))) <span class="sc">+</span></span>
+<span id="cb19-12"><a href="#cb19-12" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb19-13"><a href="#cb19-13" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Top 15 Ohio Districts by Enrollment&quot;</span>,</span>
+<span id="cb19-14"><a href="#cb19-14" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">&quot;2023-24 School Year&quot;</span>,</span>
+<span id="cb19-15"><a href="#cb19-15" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb19-16"><a href="#cb19-16" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Total Enrollment&quot;</span></span>
+<span id="cb19-17"><a href="#cb19-17" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb19-18"><a href="#cb19-18" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb19-19"><a href="#cb19-19" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>())</span></code></pre></div>
+</div>
+<div id="demographic-composition" class="section level3">
+<h3>Demographic Composition</h3>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="co"># Statewide demographic breakdown</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>state_demos <span class="ot">&lt;-</span> enr <span class="sc">%&gt;%</span></span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>  <span class="fu">filter</span>(is_state, grade_level <span class="sc">==</span> <span class="st">&quot;TOTAL&quot;</span>,</span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a>         subgroup <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;white&quot;</span>, <span class="st">&quot;black&quot;</span>, <span class="st">&quot;hispanic&quot;</span>, <span class="st">&quot;asian&quot;</span>, <span class="st">&quot;multiracial&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a>  <span class="fu">select</span>(subgroup, n_students, pct) <span class="sc">%&gt;%</span></span>
+<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">subgroup =</span> stringr<span class="sc">::</span><span class="fu">str_to_title</span>(subgroup))</span>
+<span id="cb20-7"><a href="#cb20-7" tabindex="-1"></a></span>
+<span id="cb20-8"><a href="#cb20-8" tabindex="-1"></a><span class="fu">ggplot</span>(state_demos, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(subgroup, <span class="sc">-</span>n_students), <span class="at">y =</span> pct)) <span class="sc">+</span></span>
+<span id="cb20-9"><a href="#cb20-9" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">fill =</span> <span class="st">&quot;steelblue&quot;</span>) <span class="sc">+</span></span>
+<span id="cb20-10"><a href="#cb20-10" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> scales<span class="sc">::</span><span class="fu">percent</span>(pct, <span class="at">accuracy =</span> <span class="fl">0.1</span>)), <span class="at">vjust =</span> <span class="sc">-</span><span class="fl">0.5</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb20-11"><a href="#cb20-11" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>percent, <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.1</span>))) <span class="sc">+</span></span>
+<span id="cb20-12"><a href="#cb20-12" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb20-13"><a href="#cb20-13" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Ohio Statewide Enrollment by Race/Ethnicity&quot;</span>,</span>
+<span id="cb20-14"><a href="#cb20-14" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">&quot;2023-24 School Year&quot;</span>,</span>
+<span id="cb20-15"><a href="#cb20-15" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb20-16"><a href="#cb20-16" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Percent of Total Enrollment&quot;</span></span>
+<span id="cb20-17"><a href="#cb20-17" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb20-18"><a href="#cb20-18" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div>
+</div>
+<div id="enrollment-trend-over-time" class="section level3">
+<h3>Enrollment Trend Over Time</h3>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="co"># Fetch multiple years for trend analysis</span></span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>enr_trend <span class="ot">&lt;-</span> <span class="fu">fetch_enr_range</span>(<span class="dv">2018</span>, <span class="dv">2024</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a><span class="co"># State enrollment trend</span></span>
+<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a>state_trend <span class="ot">&lt;-</span> enr_trend <span class="sc">%&gt;%</span></span>
+<span id="cb21-6"><a href="#cb21-6" tabindex="-1"></a>  <span class="fu">filter</span>(is_state, subgroup <span class="sc">==</span> <span class="st">&quot;total_enrollment&quot;</span>, grade_level <span class="sc">==</span> <span class="st">&quot;TOTAL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb21-7"><a href="#cb21-7" tabindex="-1"></a>  <span class="fu">select</span>(end_year, n_students)</span>
+<span id="cb21-8"><a href="#cb21-8" tabindex="-1"></a></span>
+<span id="cb21-9"><a href="#cb21-9" tabindex="-1"></a><span class="fu">ggplot</span>(state_trend, <span class="fu">aes</span>(<span class="at">x =</span> end_year, <span class="at">y =</span> n_students)) <span class="sc">+</span></span>
+<span id="cb21-10"><a href="#cb21-10" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">&quot;steelblue&quot;</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb21-11"><a href="#cb21-11" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">&quot;steelblue&quot;</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb21-12"><a href="#cb21-12" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> scales<span class="sc">::</span><span class="fu">comma</span>(n_students)), <span class="at">vjust =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb21-13"><a href="#cb21-13" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">1500000</span>, <span class="cn">NA</span>)) <span class="sc">+</span></span>
+<span id="cb21-14"><a href="#cb21-14" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="dv">2018</span><span class="sc">:</span><span class="dv">2024</span>) <span class="sc">+</span></span>
+<span id="cb21-15"><a href="#cb21-15" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb21-16"><a href="#cb21-16" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Ohio Statewide Enrollment Trend&quot;</span>,</span>
+<span id="cb21-17"><a href="#cb21-17" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;School Year End&quot;</span>,</span>
+<span id="cb21-18"><a href="#cb21-18" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Total Enrollment&quot;</span></span>
+<span id="cb21-19"><a href="#cb21-19" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb21-20"><a href="#cb21-20" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div>
+</div>
+<div id="county-comparison" class="section level3">
+<h3>County Comparison</h3>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="co"># Top 10 counties by total enrollment</span></span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a>county_enr <span class="ot">&lt;-</span> enr <span class="sc">%&gt;%</span></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a>  <span class="fu">filter</span>(is_district, subgroup <span class="sc">==</span> <span class="st">&quot;total_enrollment&quot;</span>, grade_level <span class="sc">==</span> <span class="st">&quot;TOTAL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a>  <span class="fu">group_by</span>(county) <span class="sc">%&gt;%</span></span>
+<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">total_enrollment =</span> <span class="fu">sum</span>(n_students, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">&quot;drop&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(total_enrollment)) <span class="sc">%&gt;%</span></span>
+<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>)</span>
+<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a></span>
+<span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a><span class="fu">ggplot</span>(county_enr, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(county, total_enrollment), <span class="at">y =</span> total_enrollment)) <span class="sc">+</span></span>
+<span id="cb22-10"><a href="#cb22-10" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">fill =</span> <span class="st">&quot;steelblue&quot;</span>) <span class="sc">+</span></span>
+<span id="cb22-11"><a href="#cb22-11" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb22-12"><a href="#cb22-12" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma) <span class="sc">+</span></span>
+<span id="cb22-13"><a href="#cb22-13" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb22-14"><a href="#cb22-14" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Top 10 Ohio Counties by Total Enrollment&quot;</span>,</span>
+<span id="cb22-15"><a href="#cb22-15" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb22-16"><a href="#cb22-16" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Total Enrollment&quot;</span></span>
+<span id="cb22-17"><a href="#cb22-17" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb22-18"><a href="#cb22-18" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div>
+</div>
+</div>
+<div id="cache-management" class="section level2">
+<h2>Cache Management</h2>
+<p>Downloaded data is cached locally to speed up repeated requests:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="co"># View cached files</span></span>
+<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a><span class="fu">cache_status</span>()</span>
+<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="#cb23-4" tabindex="-1"></a><span class="co"># Clear cache for a specific year</span></span>
+<span id="cb23-5"><a href="#cb23-5" tabindex="-1"></a><span class="fu">clear_enr_cache</span>(<span class="dv">2024</span>)</span>
+<span id="cb23-6"><a href="#cb23-6" tabindex="-1"></a></span>
+<span id="cb23-7"><a href="#cb23-7" tabindex="-1"></a><span class="co"># Clear all cached data</span></span>
+<span id="cb23-8"><a href="#cb23-8" tabindex="-1"></a><span class="fu">clear_enr_cache</span>()</span>
+<span id="cb23-9"><a href="#cb23-9" tabindex="-1"></a></span>
+<span id="cb23-10"><a href="#cb23-10" tabindex="-1"></a><span class="co"># Force fresh download (bypasses cache)</span></span>
+<span id="cb23-11"><a href="#cb23-11" tabindex="-1"></a>enr_fresh <span class="ot">&lt;-</span> <span class="fu">fetch_enr</span>(<span class="dv">2024</span>, <span class="at">use_cache =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+</div>
+<div id="importing-local-files" class="section level2">
+<h2>Importing Local Files</h2>
+<p>If automated downloads fail, download files manually and import
+them:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="co"># After downloading from reportcard.education.ohio.gov/download:</span></span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a>enr_local <span class="ot">&lt;-</span> <span class="fu">import_local_enrollment</span>(</span>
+<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a>  <span class="at">district_file =</span> <span class="st">&quot;~/Downloads/23-24_ENROLLMENT_DISTRICT.xlsx&quot;</span>,</span>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a>  <span class="at">building_file =</span> <span class="st">&quot;~/Downloads/23-24_ENROLLMENT_BUILDING.xlsx&quot;</span>,</span>
+<span id="cb24-5"><a href="#cb24-5" tabindex="-1"></a>  <span class="at">end_year =</span> <span class="dv">2024</span></span>
+<span id="cb24-6"><a href="#cb24-6" tabindex="-1"></a>)</span>
+<span id="cb24-7"><a href="#cb24-7" tabindex="-1"></a></span>
+<span id="cb24-8"><a href="#cb24-8" tabindex="-1"></a><span class="co"># Process the raw data</span></span>
+<span id="cb24-9"><a href="#cb24-9" tabindex="-1"></a>enr_processed <span class="ot">&lt;-</span> <span class="fu">process_enr</span>(enr_local, <span class="dv">2024</span>)</span>
+<span id="cb24-10"><a href="#cb24-10" tabindex="-1"></a>enr_tidy <span class="ot">&lt;-</span> <span class="fu">tidy_enr</span>(enr_processed)</span></code></pre></div>
+</div>
+<div id="next-steps" class="section level2">
+<h2>Next Steps</h2>
+<ul>
+<li>Explore the <a href="../reference/index.html">function reference</a>
+for detailed documentation</li>
+<li>See the <a href="data-quality-qa.html">Data Quality QA vignette</a>
+for data validation</li>
+<li>Check <code>?fetch_enr</code> for parameter details</li>
+<li>Use <code>?filter_district</code> and <code>?filter_county</code>
+for filtering helpers</li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

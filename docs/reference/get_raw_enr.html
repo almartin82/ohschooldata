@@ -57,7 +57,7 @@ demographics, and special populations.</p>
 
 
 <dl><dt id="arg-end-year">end_year<a class="anchor" aria-label="anchor" href="#arg-end-year"></a></dt>
-<dd><p>School year end (2023-24 = 2024)</p></dd>
+<dd><p>School year end (2023-24 = 2024). Valid range is 2007 to current year.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -66,12 +66,25 @@ demographics, and special populations.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Note: Ohio Report Card data access may require manual download from
+    <p>Data availability by year:</p><ul><li><p>2007-2014: Legacy format with different file naming conventions</p></li>
+<li><p>2015-present: Modern format with consistent ENROLLMENT_BUILDING/DISTRICT files</p></li>
+</ul><p>Note: Ohio Report Card data access may require manual download from
 <a href="https://reportcard.education.ohio.gov/download" class="external-link">https://reportcard.education.ohio.gov/download</a> if direct downloads
 fail. The download portal uses dynamic tokens that may prevent automated
 access.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="co"># Get raw 2024 data</span></span></span>
+<span class="r-in"><span><span class="va">raw_2024</span> <span class="op">&lt;-</span> <span class="fu">get_raw_enr</span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Get historical 2010 data</span></span></span>
+<span class="r-in"><span><span class="va">raw_2010</span> <span class="op">&lt;-</span> <span class="fu">get_raw_enr</span><span class="op">(</span><span class="fl">2010</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 
