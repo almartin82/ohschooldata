@@ -58,8 +58,7 @@ Ohio School Report Cards data download portal.</p>
 
 <dl><dt id="arg-end-year">end_year<a class="anchor" aria-label="anchor" href="#arg-end-year"></a></dt>
 <dd><p>A school year. Year is the end of the academic year - eg 2023-24
-school year is year '2024'. Valid values are 2015 onwards (earlier years may
-have limited data or different formats).</p></dd>
+school year is year '2024'. Valid values are 2007 onwards.</p></dd>
 
 
 <dt id="arg-tidy">tidy<a class="anchor" aria-label="anchor" href="#arg-tidy"></a></dt>
@@ -86,6 +85,11 @@ Set to FALSE to force re-download from ODEW.</p></dd>
 <li><p>n_students: Student count</p></li>
 <li><p>pct: Percentage of total enrollment</p></li>
 </ul></div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Data availability spans from 2007 to the current school year:</p><ul><li><p>2007-2014: Legacy format data with varying file structures</p></li>
+<li><p>2015-present: Modern format with consistent ENROLLMENT_BUILDING/DISTRICT files</p></li>
+</ul></div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -93,14 +97,23 @@ Set to FALSE to force re-download from ODEW.</p></dd>
 <span class="r-in"><span><span class="co"># Get 2024 enrollment data (2023-24 school year)</span></span></span>
 <span class="r-in"><span><span class="va">enr_2024</span> <span class="op">&lt;-</span> <span class="fu">fetch_enr</span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Get 2025 data (2024-25 school year, released September 2025)</span></span></span>
+<span class="r-in"><span><span class="va">enr_2025</span> <span class="op">&lt;-</span> <span class="fu">fetch_enr</span><span class="op">(</span><span class="fl">2025</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Get historical data from 2010 (2009-10 school year)</span></span></span>
+<span class="r-in"><span><span class="va">enr_2010</span> <span class="op">&lt;-</span> <span class="fu">fetch_enr</span><span class="op">(</span><span class="fl">2010</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Get wide format (one row per entity)</span></span></span>
 <span class="r-in"><span><span class="va">enr_wide</span> <span class="op">&lt;-</span> <span class="fu">fetch_enr</span><span class="op">(</span><span class="fl">2024</span>, tidy <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Force fresh download (ignore cache)</span></span></span>
 <span class="r-in"><span><span class="va">enr_fresh</span> <span class="op">&lt;-</span> <span class="fu">fetch_enr</span><span class="op">(</span><span class="fl">2024</span>, use_cache <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Get multiple years</span></span></span>
-<span class="r-in"><span><span class="va">enr_multi</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_df</a></span><span class="op">(</span><span class="fl">2020</span><span class="op">:</span><span class="fl">2024</span>, <span class="va">fetch_enr</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># Get multiple years - full available range</span></span></span>
+<span class="r-in"><span><span class="va">enr_all</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_df</a></span><span class="op">(</span><span class="fl">2007</span><span class="op">:</span><span class="fl">2025</span>, <span class="va">fetch_enr</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Get recent 5 years</span></span></span>
+<span class="r-in"><span><span class="va">enr_recent</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_df</a></span><span class="op">(</span><span class="fl">2020</span><span class="op">:</span><span class="fl">2024</span>, <span class="va">fetch_enr</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
