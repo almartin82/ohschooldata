@@ -139,9 +139,16 @@ def get_available_years() -> dict:
     if names:
         min_idx = names.index("min_year")
         max_idx = names.index("max_year")
+        min_val = r_result[min_idx]
+        max_val = r_result[max_idx]
+        # Handle numpy arrays from rpy2 conversion
+        if hasattr(min_val, "__getitem__"):
+            min_val = min_val[0]
+        if hasattr(max_val, "__getitem__"):
+            max_val = max_val[0]
         return {
-            "min_year": int(r_result[min_idx]),
-            "max_year": int(r_result[max_idx]),
+            "min_year": int(min_val),
+            "max_year": int(max_val),
         }
 
     # Fallback to rx2 for complex R objects
