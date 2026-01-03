@@ -32,5 +32,5 @@ years <- get_available_years()
 years$min_year
 #> [1] 2007
 years$max_year
-#> [1] 2025
+#> [1] 2024
 ```
