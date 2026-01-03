@@ -7,12 +7,10 @@
 
 # Claude Code Instructions for ohschooldata
 
-## Commit and PR Guidelines
-
-- Do NOT include “Generated with Claude Code” in commit messages
-- Do NOT include “Co-Authored-By: Claude” in commit messages
-- Do NOT mention Claude or AI assistance in PR descriptions
-- Keep commit messages clean and professional
+### GIT COMMIT POLICY
+- Commits are allowed
+- NO Claude Code attribution, NO Co-Authored-By trailers, NO emojis
+- Write normal commit messages as if a human wrote them
 
 ## Project Context
 
