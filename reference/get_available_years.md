@@ -19,7 +19,7 @@ A list with three elements:
 
 - max_year:
 
-  The most recent available school year end (e.g., 2025 = 2024-25)
+  The most recent available school year end (e.g., 2024 = 2023-24)
 
 - description:
 
