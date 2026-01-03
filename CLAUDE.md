@@ -4,6 +4,38 @@
 
 ---
 
+## Ohio DOE Data Sources (Verified January 2026)
+
+### PRIMARY Data Source (Recommended)
+
+**ODE Frequently Requested Data - Enrollment**
+- URL: `https://education.ohio.gov/Topics/Data/Frequently-Requested-Data/Enrollment-Data`
+- Pattern: `education.ohio.gov/getattachment/.../oct_hdcnt_fyYY.xls.aspx`
+- Format: Excel file with multiple sheets
+
+| Sheet | Description |
+|-------|-------------|
+| `fyYY_hdcnt_state` | State-level totals |
+| `fyYY_hdcnt_dist` | District-level data |
+| `fyYY_hdcnt_bldg` | Building/school-level data |
+| `fyYY_hdcnt_stem`, `_cs`, `_jvsd` | Specialty schools |
+
+**Fiscal Year Mapping:**
+- FY25 = 2024-25 school year (end_year = 2025)
+- FY24 = 2023-24 school year (end_year = 2024)
+
+### Verified URLs (HTTP 200 as of Jan 2026)
+
+- `https://education.ohio.gov/getattachment/Topics/Data/Frequently-Requested-Data/Enrollment-Data/oct_hdcnt_fy25.xls.aspx`
+- `https://education.ohio.gov/getattachment/Topics/Data/Frequently-Requested-Data/Enrollment-Data/oct_hdcnt_fy24.xls.aspx`
+- Historical data available back to FY16
+
+### ALTERNATIVE Data Source (Report Card)
+
+The Ohio School Report Card portal at `reportcardstorage.education.ohio.gov` is **NOT RECOMMENDED** - files frequently return 404 or require dynamic tokens.
+
+---
+
 
 # Claude Code Instructions
 
