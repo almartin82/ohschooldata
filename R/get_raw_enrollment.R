@@ -5,8 +5,14 @@
 # This file contains functions for downloading raw enrollment data from ODEW.
 # Ohio uses EMIS (Education Management Information System) for data collection.
 #
-# Data is available from the Ohio School Report Cards download portal at
-# reportcardstorage.education.ohio.gov
+# PRIMARY DATA SOURCE (recommended):
+#   Ohio Department of Education - Frequently Requested Data - Enrollment
+#   https://education.ohio.gov/Topics/Data/Frequently-Requested-Data/Enrollment-Data
+#   URL pattern: education.ohio.gov/getattachment/.../oct_hdcnt_fyYY.xls.aspx
+#
+# ALTERNATIVE DATA SOURCE (Report Card, may have download issues):
+#   Ohio School Report Cards download portal
+#   https://reportcardstorage.education.ohio.gov
 #
 # ==============================================================================
 
@@ -46,15 +52,174 @@ get_raw_enr <- function(end_year) {
     ))
   }
 
-  # Ohio Report Card data format differs by era:
+  # Try primary source first: ODE Frequently Requested Data (most reliable)
+  result <- tryCatch({
+    download_ode_enrollment(end_year)
+  }, error = function(e) {
+    message(paste("  ODE Frequently Requested Data not available:", e$message))
+    NULL
+  })
+
+  if (!is.null(result)) {
+    return(result)
+  }
+
+  # Fallback: Ohio Report Card data format differs by era:
   # - 2007-2014: Legacy format with various file naming patterns
   # - 2015+: Modern format with consistent ENROLLMENT_BUILDING/DISTRICT naming
+  message("  Trying Report Card data source...")
 
   if (end_year >= 2015) {
     get_raw_enr_modern(end_year)
   } else {
     get_raw_enr_legacy(end_year)
   }
+}
+
+
+#' Download enrollment data from ODE Frequently Requested Data
+#'
+#' Downloads enrollment data from Ohio Department of Education's
+#' Frequently Requested Data page. This is the most reliable source
+#' for Ohio enrollment data.
+#'
+#' The Excel file contains multiple sheets:
+#' - data_notes: Notes (skip)
+#' - fyYY_hdcnt_state: State-level totals
+#' - fyYY_hdcnt_dist: District-level data
+#' - fyYY_hdcnt_bldg: Building/school-level data
+#' - fyYY_hdcnt_stem, fyYY_hdcnt_cs, fyYY_hdcnt_jvsd: Specialty schools
+#'
+#' @param end_year School year end (2024 for 2023-24)
+#' @return Raw data frame with enrollment data
+#' @keywords internal
+download_ode_enrollment <- function(end_year) {
+
+  message(paste("  Downloading from ODE Frequently Requested Data..."))
+
+  # Construct fiscal year (fy24 = 2023-24 school year where end_year=2024)
+  fy <- end_year %% 100  # Get last 2 digits
+  fy_str <- sprintf("%02d", fy)
+
+  # Base URL for ODE enrollment data
+  base_url <- "https://education.ohio.gov/getattachment/Topics/Data/Frequently-Requested-Data/Enrollment-Data/"
+
+  # Build URL for public enrollment (October headcount)
+  public_url <- paste0(base_url, "oct_hdcnt_fy", fy_str, ".xls.aspx")
+
+  # Download the file
+  tname <- tempfile(pattern = "ohio_ode", fileext = ".xls")
+
+  response <- httr::GET(
+    public_url,
+    httr::write_disk(tname, overwrite = TRUE),
+    httr::timeout(120),
+    httr::config(ssl_verifypeer = FALSE)
+  )
+
+  if (httr::http_error(response)) {
+    unlink(tname)
+    stop(paste("HTTP error:", httr::status_code(response)))
+  }
+
+  # Check file size
+  file_info <- file.info(tname)
+  if (file_info$size < 5000) {
+    unlink(tname)
+    stop("Downloaded file too small, likely error page")
+  }
+
+  # Read the sheets we need
+  sheets <- readxl::excel_sheets(tname)
+
+  # Read district data
+  dist_sheet <- grep("hdcnt_dist", sheets, value = TRUE, ignore.case = TRUE)
+  district_df <- NULL
+  if (length(dist_sheet) > 0) {
+    district_df <- readxl::read_excel(tname, sheet = dist_sheet[1])
+    district_df$entity_type <- "District"
+    message(paste("  Read", nrow(district_df), "district rows"))
+  }
+
+  # Read building data
+  bldg_sheet <- grep("hdcnt_bldg", sheets, value = TRUE, ignore.case = TRUE)
+  building_df <- NULL
+  if (length(bldg_sheet) > 0) {
+    building_df <- readxl::read_excel(tname, sheet = bldg_sheet[1])
+    building_df$entity_type <- "Building"
+    message(paste("  Read", nrow(building_df), "building rows"))
+  }
+
+  # Clean up temp file
+  unlink(tname)
+
+  # Combine datasets
+  if (!is.null(district_df) && !is.null(building_df)) {
+    result <- dplyr::bind_rows(district_df, building_df)
+  } else if (!is.null(district_df)) {
+    result <- district_df
+  } else if (!is.null(building_df)) {
+    result <- building_df
+  } else {
+    stop(paste("No enrollment data found in file for", end_year))
+  }
+
+  result$end_year <- end_year
+  result
+}
+
+
+#' Download Excel file from ODE
+#'
+#' Helper function to download and read an Excel file from ODE.
+#'
+#' @param url URL to download
+#' @param type "public" or "nonpub"
+#' @param end_year School year end
+#' @return Data frame or NULL if download fails
+#' @keywords internal
+download_ode_excel <- function(url, type, end_year) {
+
+  # Create temp file
+  tname <- tempfile(
+    pattern = paste0("ohio_ode_", type),
+    tmpdir = tempdir(),
+    fileext = ".xls"
+  )
+
+  # Download file
+  result <- tryCatch({
+    # Use httr for more control
+    response <- httr::GET(
+      url,
+      httr::write_disk(tname, overwrite = TRUE),
+      httr::timeout(120),
+      httr::config(ssl_verifypeer = FALSE)  # ODE has cert issues sometimes
+    )
+
+    if (httr::http_error(response)) {
+      stop(paste("HTTP error:", httr::status_code(response)))
+    }
+
+    # Check file size
+    file_info <- file.info(tname)
+    if (file_info$size < 5000) {
+      stop("Downloaded file too small, likely error page")
+    }
+
+    # Read Excel file
+    df <- readxl::read_excel(tname, sheet = 1)
+    message(paste("  Downloaded", type, "enrollment:", nrow(df), "rows"))
+    df
+  }, error = function(e) {
+    if (file.exists(tname)) unlink(tname)
+    stop(e$message)
+  })
+
+  # Clean up
+  if (file.exists(tname)) unlink(tname)
+
+  result
 }
 
 
