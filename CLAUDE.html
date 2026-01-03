@@ -41,6 +41,36 @@
 <h2 id="critical-data-source-rules">CRITICAL DATA SOURCE RULES<a class="anchor" aria-label="anchor" href="#critical-data-source-rules"></a></h2>
 <p><strong>NEVER use Urban Institute API, NCES CCD, or ANY federal data source</strong> — the entire point of these packages is to provide STATE-LEVEL data directly from state DOEs. Federal sources aggregate/transform data differently and lose state-specific details. If a state DOE source is broken, FIX IT or find an alternative STATE source — do not fall back to federal data.</p>
 <hr></div>
+<div class="section level2">
+<h2 id="ohio-doe-data-sources-verified-january-2026">Ohio DOE Data Sources (Verified January 2026)<a class="anchor" aria-label="anchor" href="#ohio-doe-data-sources-verified-january-2026"></a></h2>
+<div class="section level3">
+<h3 id="primary-data-source-recommended">PRIMARY Data Source (Recommended)<a class="anchor" aria-label="anchor" href="#primary-data-source-recommended"></a></h3>
+<p><strong>ODE Frequently Requested Data - Enrollment</strong> - URL: <code>https://education.ohio.gov/Topics/Data/Frequently-Requested-Data/Enrollment-Data</code> - Pattern: <code>education.ohio.gov/getattachment/.../oct_hdcnt_fyYY.xls.aspx</code> - Format: Excel file with multiple sheets</p>
+<table class="table"><thead><tr class="header"><th>Sheet</th>
+<th>Description</th>
+</tr></thead><tbody><tr class="odd"><td><code>fyYY_hdcnt_state</code></td>
+<td>State-level totals</td>
+</tr><tr class="even"><td><code>fyYY_hdcnt_dist</code></td>
+<td>District-level data</td>
+</tr><tr class="odd"><td><code>fyYY_hdcnt_bldg</code></td>
+<td>Building/school-level data</td>
+</tr><tr class="even"><td>
+<code>fyYY_hdcnt_stem</code>, <code>_cs</code>, <code>_jvsd</code>
+</td>
+<td>Specialty schools</td>
+</tr></tbody></table><p><strong>Fiscal Year Mapping:</strong> - FY25 = 2024-25 school year (end_year = 2025) - FY24 = 2023-24 school year (end_year = 2024)</p>
+</div>
+<div class="section level3">
+<h3 id="verified-urls-http-200-as-of-jan-2026">Verified URLs (HTTP 200 as of Jan 2026)<a class="anchor" aria-label="anchor" href="#verified-urls-http-200-as-of-jan-2026"></a></h3>
+<ul><li><code>https://education.ohio.gov/getattachment/Topics/Data/Frequently-Requested-Data/Enrollment-Data/oct_hdcnt_fy25.xls.aspx</code></li>
+<li><code>https://education.ohio.gov/getattachment/Topics/Data/Frequently-Requested-Data/Enrollment-Data/oct_hdcnt_fy24.xls.aspx</code></li>
+<li>Historical data available back to FY16</li>
+</ul></div>
+<div class="section level3">
+<h3 id="alternative-data-source-report-card">ALTERNATIVE Data Source (Report Card)<a class="anchor" aria-label="anchor" href="#alternative-data-source-report-card"></a></h3>
+<p>The Ohio School Report Card portal at <code>reportcardstorage.education.ohio.gov</code> is <strong>NOT RECOMMENDED</strong> - files frequently return 404 or require dynamic tokens.</p>
+<hr></div>
+</div>
 <div id="claude-code-instructions" class="section level1">
 
 <div class="section level2">
