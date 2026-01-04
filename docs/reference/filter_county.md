@@ -28,6 +28,6 @@ Filtered data frame
 ``` r
 if (FALSE) { # \dontrun{
 # Get Franklin County schools
-franklin <- fetch_enr(2024) %>% filter_county("Franklin")
+franklin <- fetch_enr(2024) |> filter_county("Franklin")
 } # }
 ```

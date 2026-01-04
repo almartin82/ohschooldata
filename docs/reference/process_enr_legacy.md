@@ -1,6 +1,6 @@
 # Process legacy format ODEW data
 
-Processes enrollment data from older Ohio data formats (pre-2015).
+Processes enrollment data from older Ohio data formats (2007-2014).
 Column layouts and file formats differ from modern data.
 
 ## Usage
@@ -17,8 +17,20 @@ process_enr_legacy(df, end_year)
 
 - end_year:
 
-  School year end
+  School year end (2007-2014)
 
 ## Value
 
-Processed data frame
+Processed data frame with standardized columns
+
+## Details
+
+Legacy data characteristics:
+
+- May use different column names (e.g., "School IRN" vs "Building IRN")
+
+- May have different grade level encoding
+
+- Demographics may be in percentage rather than count format
+
+- Some columns present in modern data may be missing

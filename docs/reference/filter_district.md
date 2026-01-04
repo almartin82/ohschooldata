@@ -33,6 +33,6 @@ Filtered data frame
 ``` r
 if (FALSE) { # \dontrun{
 # Get Columbus City Schools (IRN 043752)
-columbus <- fetch_enr(2024) %>% filter_district("043752")
+columbus <- fetch_enr(2024) |> filter_district("043752")
 } # }
 ```

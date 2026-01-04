@@ -36,18 +36,110 @@
       <small class="dont-index">Source: <a href="https://github.com/almartin82/ohschooldata/blob/HEAD/CLAUDE.md" class="external-link"><code>CLAUDE.md</code></a></small>
     </div>
 
-<div id="claude-code-instructions" class="section level1">
 
 <div class="section level2">
-<h2 id="git-commits-and-prs">Git Commits and PRs<a class="anchor" aria-label="anchor" href="#git-commits-and-prs"></a></h2>
-<ul><li>NEVER reference Claude, Claude Code, or AI assistance in commit messages</li>
-<li>NEVER reference Claude, Claude Code, or AI assistance in PR descriptions</li>
-<li>NEVER add Co-Authored-By lines mentioning Claude or Anthropic</li>
-<li>Keep commit messages focused on what changed, not how it was written</li>
+<h2 id="critical-data-source-rules">CRITICAL DATA SOURCE RULES<a class="anchor" aria-label="anchor" href="#critical-data-source-rules"></a></h2>
+<p><strong>NEVER use Urban Institute API, NCES CCD, or ANY federal data source</strong> — the entire point of these packages is to provide STATE-LEVEL data directly from state DOEs. Federal sources aggregate/transform data differently and lose state-specific details. If a state DOE source is broken, FIX IT or find an alternative STATE source — do not fall back to federal data.</p>
+<hr></div>
+<div class="section level2">
+<h2 id="ohio-doe-data-sources-verified-january-2026">Ohio DOE Data Sources (Verified January 2026)<a class="anchor" aria-label="anchor" href="#ohio-doe-data-sources-verified-january-2026"></a></h2>
+<div class="section level3">
+<h3 id="primary-data-source-recommended">PRIMARY Data Source (Recommended)<a class="anchor" aria-label="anchor" href="#primary-data-source-recommended"></a></h3>
+<p><strong>ODE Frequently Requested Data - Enrollment</strong> - URL: <code>https://education.ohio.gov/Topics/Data/Frequently-Requested-Data/Enrollment-Data</code> - Pattern: <code>education.ohio.gov/getattachment/.../oct_hdcnt_fyYY.xls.aspx</code> - Format: Excel file with multiple sheets</p>
+<table class="table"><thead><tr class="header"><th>Sheet</th>
+<th>Description</th>
+</tr></thead><tbody><tr class="odd"><td><code>fyYY_hdcnt_state</code></td>
+<td>State-level totals</td>
+</tr><tr class="even"><td><code>fyYY_hdcnt_dist</code></td>
+<td>District-level data</td>
+</tr><tr class="odd"><td><code>fyYY_hdcnt_bldg</code></td>
+<td>Building/school-level data</td>
+</tr><tr class="even"><td>
+<code>fyYY_hdcnt_stem</code>, <code>_cs</code>, <code>_jvsd</code>
+</td>
+<td>Specialty schools</td>
+</tr></tbody></table><p><strong>Fiscal Year Mapping:</strong> - FY25 = 2024-25 school year (end_year = 2025) - FY24 = 2023-24 school year (end_year = 2024)</p>
+</div>
+<div class="section level3">
+<h3 id="verified-urls-http-200-as-of-jan-2026">Verified URLs (HTTP 200 as of Jan 2026)<a class="anchor" aria-label="anchor" href="#verified-urls-http-200-as-of-jan-2026"></a></h3>
+<ul><li><code>https://education.ohio.gov/getattachment/Topics/Data/Frequently-Requested-Data/Enrollment-Data/oct_hdcnt_fy25.xls.aspx</code></li>
+<li><code>https://education.ohio.gov/getattachment/Topics/Data/Frequently-Requested-Data/Enrollment-Data/oct_hdcnt_fy24.xls.aspx</code></li>
+<li>Historical data available back to FY16</li>
 </ul></div>
+<div class="section level3">
+<h3 id="alternative-data-source-report-card">ALTERNATIVE Data Source (Report Card)<a class="anchor" aria-label="anchor" href="#alternative-data-source-report-card"></a></h3>
+<p>The Ohio School Report Card portal at <code>reportcardstorage.education.ohio.gov</code> is <strong>NOT RECOMMENDED</strong> - files frequently return 404 or require dynamic tokens.</p>
+<hr></div>
+</div>
+<div id="claude-code-instructions" class="section level1">
+
+<div class="section level3">
+<h3 id="git-commit-policy">GIT COMMIT POLICY<a class="anchor" aria-label="anchor" href="#git-commit-policy"></a></h3>
+<ul><li>Commits are allowed</li>
+<li>NO Claude Code attribution, NO Co-Authored-By trailers, NO emojis</li>
+<li>Write normal commit messages as if a human wrote them</li>
+</ul><hr></div>
+<div class="section level2">
+<h2 id="local-testing-before-prs-required">Local Testing Before PRs (REQUIRED)<a class="anchor" aria-label="anchor" href="#local-testing-before-prs-required"></a></h2>
+<p><strong>PRs will not be merged until CI passes.</strong> Run these checks locally BEFORE opening a PR:</p>
+<div class="section level3">
+<h3 id="ci-checks-that-must-pass">CI Checks That Must Pass<a class="anchor" aria-label="anchor" href="#ci-checks-that-must-pass"></a></h3>
+<table class="table"><colgroup><col width="18%"><col width="40%"><col width="40%"></colgroup><thead><tr class="header"><th>Check</th>
+<th>Local Command</th>
+<th>What It Tests</th>
+</tr></thead><tbody><tr class="odd"><td>R-CMD-check</td>
+<td><code><a href="https://devtools.r-lib.org/reference/check.html" class="external-link">devtools::check()</a></code></td>
+<td>Package builds, tests pass, no errors/warnings</td>
+</tr><tr class="even"><td>Python tests</td>
+<td><code>pytest tests/test_pyohschooldata.py -v</code></td>
+<td>Python wrapper works correctly</td>
+</tr><tr class="odd"><td>pkgdown</td>
+<td><code><a href="https://pkgdown.r-lib.org/reference/build_site.html" class="external-link">pkgdown::build_site()</a></code></td>
+<td>Documentation and vignettes render</td>
+</tr></tbody></table></div>
+<div class="section level3">
+<h3 id="quick-commands">Quick Commands<a class="anchor" aria-label="anchor" href="#quick-commands"></a></h3>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># R package check (required)</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/check.html" class="external-link">check</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Python tests (required)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/system.html" class="external-link">system</a></span><span class="op">(</span><span class="st">"pip install -e ./pyohschooldata &amp;&amp; pytest tests/test_pyohschooldata.py -v"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># pkgdown build (required)</span></span>
+<span><span class="fu">pkgdown</span><span class="fu">::</span><span class="fu"><a href="https://pkgdown.r-lib.org/reference/build_site.html" class="external-link">build_site</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="pre-pr-checklist">Pre-PR Checklist<a class="anchor" aria-label="anchor" href="#pre-pr-checklist"></a></h3>
+<p>Before opening a PR, verify: - [ ] <code><a href="https://devtools.r-lib.org/reference/check.html" class="external-link">devtools::check()</a></code> — 0 errors, 0 warnings - [ ] <code>pytest tests/test_pyohschooldata.py</code> — all tests pass - [ ] <code><a href="https://pkgdown.r-lib.org/reference/build_site.html" class="external-link">pkgdown::build_site()</a></code> — builds without errors - [ ] Vignettes render (no <code>eval=FALSE</code> hacks)</p>
+<hr></div>
+</div>
+<div class="section level2">
+<h2 id="live-pipeline-testing">LIVE Pipeline Testing<a class="anchor" aria-label="anchor" href="#live-pipeline-testing"></a></h2>
+<p>This package includes <code>tests/testthat/test-pipeline-live.R</code> with LIVE network tests.</p>
+<div class="section level3">
+<h3 id="test-categories">Test Categories:<a class="anchor" aria-label="anchor" href="#test-categories"></a></h3>
+<ol style="list-style-type: decimal"><li>URL Availability - HTTP 200 checks</li>
+<li>File Download - Verify actual file (not HTML error)</li>
+<li>File Parsing - readxl/readr succeeds</li>
+<li>Column Structure - Expected columns exist</li>
+<li>get_raw_enr() - Raw data function works</li>
+<li>Data Quality - No Inf/NaN, non-negative counts</li>
+<li>Aggregation - State total &gt; 0</li>
+<li>Output Fidelity - tidy=TRUE matches raw</li>
+</ol></div>
+<div class="section level3">
+<h3 id="running-tests">Running Tests:<a class="anchor" aria-label="anchor" href="#running-tests"></a></h3>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/test.html" class="external-link">test</a></span><span class="op">(</span>filter <span class="op">=</span> <span class="st">"pipeline-live"</span><span class="op">)</span></span></code></pre></div>
+<p>See <code>state-schooldata/CLAUDE.md</code> for complete testing framework documentation.</p>
+</div>
+</div>
 </div>
 
-  </main></div>
+
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">
