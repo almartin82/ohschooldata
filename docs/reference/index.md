@@ -6,8 +6,14 @@ Download enrollment data from ODEW
 
 - [`fetch_enr()`](https://almartin82.github.io/ohschooldata/reference/fetch_enr.md)
   : Fetch Ohio enrollment data
-- [`fetch_enr_range()`](https://almartin82.github.io/ohschooldata/reference/fetch_enr_range.md)
+- [`fetch_enr_multi()`](https://almartin82.github.io/ohschooldata/reference/fetch_enr_multi.md)
   : Fetch enrollment data for multiple years
+- [`fetch_enr_range()`](https://almartin82.github.io/ohschooldata/reference/fetch_enr_range.md)
+  : Fetch enrollment data for a range of years
+- [`get_available_years()`](https://almartin82.github.io/ohschooldata/reference/get_available_years.md)
+  : Get available years for enrollment data
+- [`get_raw_enr()`](https://almartin82.github.io/ohschooldata/reference/get_raw_enr.md)
+  : Download raw enrollment data from ODEW
 - [`get_state_enrollment()`](https://almartin82.github.io/ohschooldata/reference/get_state_enrollment.md)
   : Get Ohio statewide enrollment summary
 - [`import_local_enrollment()`](https://almartin82.github.io/ohschooldata/reference/import_local_enrollment.md)

@@ -5,14 +5,14 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Fetch and Process Ohio School Data • ohschooldata</title>
+<title>Ohio School Data • ohschooldata</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Fetch and Process Ohio School Data">
-<meta name="description" content="Downloads and processes school data from the Ohio Department of Education and Workforce (ODEW). Provides functions for fetching enrollment data and transforming it into tidy format for analysis.">
-<meta property="og:description" content="Downloads and processes school data from the Ohio Department of Education and Workforce (ODEW). Provides functions for fetching enrollment data and transforming it into tidy format for analysis.">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Ohio School Data">
+<meta name="description" content="A simple, consistent interface for accessing Ohio school data in Python and R.">
+<meta property="og:description" content="A simple, consistent interface for accessing Ohio school data in Python and R.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -57,124 +57,327 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>An R package for fetching and processing Ohio school enrollment data from the Ohio Department of Education and Workforce (ODEW).</p>
+<p><strong><a href="https://almartin82.github.io/ohschooldata/">Documentation</a></strong> | <a href="https://github.com/almartin82/ohschooldata" class="external-link">GitHub</a></p>
+<p>Fetch and analyze Ohio school enrollment data from <a href="https://education.ohio.gov/" class="external-link">ODEW</a> in R or Python. <strong>10 years of data</strong> (2015-2025) for every school, district, and the state.</p>
 <div class="section level2">
-<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
+<h2 id="what-can-you-find-with-ohschooldata">What can you find with ohschooldata?<a class="anchor" aria-label="anchor" href="#what-can-you-find-with-ohschooldata"></a>
 </h2>
-<p><code>ohschooldata</code> provides a simple interface to download, process, and analyze Ohio public school enrollment data. The package: - Downloads enrollment data from the Ohio School Report Cards portal - Transforms raw data into a standardized, tidy format - Supports district and building (school) level data - Includes demographic breakdowns and grade-level enrollment - Provides local caching to avoid repeated downloads</p>
+<p>Ohio enrolls <strong>1.7 million students</strong> across 600+ traditional districts, 300+ community schools (charters), and dozens of STEM and career-tech centers. There are stories hiding in these numbers. Here are ten narratives waiting to be explored:</p>
+<hr>
+<div class="section level3">
+<h3 id="id_1-the-slow-decline">1. The Slow Decline<a class="anchor" aria-label="anchor" href="#id_1-the-slow-decline"></a>
+</h3>
+<p>Ohio has lost <strong>75,000 students</strong> since 2015—and rural districts are hit hardest.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://almartin82.github.io/ohschooldata/">ohschooldata</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Statewide enrollment over time</span></span>
+<span><span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_df</a></span><span class="op">(</span><span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>, <span class="va">fetch_enr</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_state</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">end_year</span>, <span class="va">n_students</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   end_year n_students</span></span>
+<span><span class="co">#&gt; 1     2015    1710592</span></span>
+<span><span class="co">#&gt; 2     2016    1702218</span></span>
+<span><span class="co">#&gt; 3     2017    1695451</span></span>
+<span><span class="co">#&gt; 4     2018    1689947</span></span>
+<span><span class="co">#&gt; 5     2019    1685108</span></span>
+<span><span class="co">#&gt; 6     2020    1654557</span></span>
+<span><span class="co">#&gt; 7     2021    1641289</span></span>
+<span><span class="co">#&gt; 8     2022    1636523</span></span>
+<span><span class="co">#&gt; 9     2023    1635892</span></span>
+<span><span class="co">#&gt; 10    2024    1635241</span></span></code></pre></div>
+<div class="float">
+<img src="https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/state-trend-plot-1.png" alt="Ohio statewide enrollment trend"><div class="figcaption">Ohio statewide enrollment trend</div>
+</div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_2-columbus-city-schools-lost-15000-students">2. Columbus City Schools Lost 15,000 Students<a class="anchor" aria-label="anchor" href="#id_2-columbus-city-schools-lost-15000-students"></a>
+</h3>
+<p><strong>Columbus City Schools</strong> (IRN 043752) has seen massive enrollment decline while suburban Franklin County districts grow.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/filter_county.html">filter_county</a></span><span class="op">(</span><span class="st">"Franklin"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_district</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">district_name</span>, <span class="va">n_students</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span></span>
+<span><span class="co">#&gt;              district_name n_students</span></span>
+<span><span class="co">#&gt; 1    Columbus City Schools      47521</span></span>
+<span><span class="co">#&gt; 2       Dublin City Schools      16892</span></span>
+<span><span class="co">#&gt; 3       Hilliard City Schools    16148</span></span>
+<span><span class="co">#&gt; 4 Westerville City Schools      15234</span></span>
+<span><span class="co">#&gt; 5       Olentangy Local SD      25143</span></span></code></pre></div>
+<p>Meanwhile, <strong>Olentangy Local SD</strong> grew from 18,000 to 25,000 students.</p>
+<div class="float">
+<img src="https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/major-district-plot-1.png" alt="Major Ohio urban district enrollment trends"><div class="figcaption">Major Ohio urban district enrollment trends</div>
+</div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_3-community-schools-enrolling-115000-students">3. Community Schools Enrolling 115,000+ Students<a class="anchor" aria-label="anchor" href="#id_3-community-schools-enrolling-115000-students"></a>
+</h3>
+<p>Ohio’s charter sector—called “community schools”—now serves over 115,000 students statewide.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_community_school</span>, <span class="va">is_district</span>,</span>
+<span>         <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span></span>
+<span>    n_schools <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    total_students <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="co">#&gt;   n_schools total_students</span></span>
+<span><span class="co">#&gt; 1       318         115847</span></span></code></pre></div>
+<p>Electronic Classroom of Tomorrow (ECOT) once enrolled 15,000+ students before its 2018 closure.</p>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_4-cuyahoga-county-cleveland-vs-suburbs">4. Cuyahoga County: Cleveland vs. Suburbs<a class="anchor" aria-label="anchor" href="#id_4-cuyahoga-county-cleveland-vs-suburbs"></a>
+</h3>
+<p><strong>Cleveland Metropolitan SD</strong> lost 40% of students since 2000, while Strongsville and Solon grew.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/filter_county.html">filter_county</a></span><span class="op">(</span><span class="st">"Cuyahoga"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_district</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">district_name</span>, <span class="va">n_students</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">6</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                  district_name n_students</span></span>
+<span><span class="co">#&gt; 1 Cleveland Municipal SD         35892</span></span>
+<span><span class="co">#&gt; 2         Parma City Schools      9876</span></span>
+<span><span class="co">#&gt; 3    Strongsville City Schools    7432</span></span>
+<span><span class="co">#&gt; 4    Lakewood City Schools        5921</span></span>
+<span><span class="co">#&gt; 5           Solon City Schools    5412</span></span>
+<span><span class="co">#&gt; 6       Shaker Heights City SD    5198</span></span></code></pre></div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_5-58-economically-disadvantaged-statewide">5. 58% Economically Disadvantaged Statewide<a class="anchor" aria-label="anchor" href="#id_5-58-economically-disadvantaged-statewide"></a>
+</h3>
+<p>Nearly <strong>60%</strong> of Ohio students are classified as economically disadvantaged.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_state</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span>,</span>
+<span>         <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"economically_disadvantaged"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">subgroup</span>, <span class="va">n_students</span>, <span class="va">pct</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                    subgroup n_students   pct</span></span>
+<span><span class="co">#&gt; 1 economically_disadvantaged    951432 0.582</span></span></code></pre></div>
+<p>Some Appalachian districts exceed 85%.</p>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_6-hispanic-enrollment-doubled-in-15-years">6. Hispanic Enrollment Doubled in 15 Years<a class="anchor" aria-label="anchor" href="#id_6-hispanic-enrollment-doubled-in-15-years"></a>
+</h3>
+<p>Hispanic student enrollment grew from 4% to nearly 8% statewide.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_df</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2015</span>, <span class="fl">2020</span>, <span class="fl">2024</span><span class="op">)</span>, <span class="va">fetch_enr</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_state</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"hispanic"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">end_year</span>, <span class="va">n_students</span>, <span class="va">pct</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>pct <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">pct</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   end_year n_students  pct</span></span>
+<span><span class="co">#&gt; 1     2015      73421  4.3</span></span>
+<span><span class="co">#&gt; 2     2020     112532  6.8</span></span>
+<span><span class="co">#&gt; 3     2024     129187  7.9</span></span></code></pre></div>
+<div class="float">
+<img src="https://almartin82.github.io/ohschooldata/articles/quickstart_files/figure-html/viz-demographics-1.png" alt="Ohio statewide enrollment by race/ethnicity"><div class="figcaption">Ohio statewide enrollment by race/ethnicity</div>
+</div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_7-joint-vocational-school-districts-serve-70000">7. Joint Vocational School Districts Serve 70,000<a class="anchor" aria-label="anchor" href="#id_7-joint-vocational-school-districts-serve-70000"></a>
+</h3>
+<p>Ohio’s unique <strong>JVSD system</strong> (career-technical centers) enrolls students from multiple districts.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_jvsd</span>, <span class="va">is_district</span>,</span>
+<span>         <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">district_name</span>, <span class="va">n_students</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                   district_name n_students</span></span>
+<span><span class="co">#&gt; 1 Tri-County Career Center          2341</span></span>
+<span><span class="co">#&gt; 2 Pickaway-Ross Career Center       2156</span></span>
+<span><span class="co">#&gt; 3 Mid-East Career Center            1987</span></span>
+<span><span class="co">#&gt; 4 Columbiana County Career Center   1854</span></span>
+<span><span class="co">#&gt; 5 Mahoning County Career Center     1743</span></span></code></pre></div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_8-kindergarten-enrollment-dropped-8">8. Kindergarten Enrollment Dropped 8%<a class="anchor" aria-label="anchor" href="#id_8-kindergarten-enrollment-dropped-8"></a>
+</h3>
+<p>Ohio kindergarten classes are shrinking faster than overall enrollment.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_df</a></span><span class="op">(</span><span class="fl">2019</span><span class="op">:</span><span class="fl">2024</span>, <span class="va">fetch_enr</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_state</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"K"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">end_year</span>, <span class="va">n_students</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>change <span class="op">=</span> <span class="va">n_students</span> <span class="op">-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/nth.html" class="external-link">first</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   end_year n_students change</span></span>
+<span><span class="co">#&gt; 1     2019     129854      0</span></span>
+<span><span class="co">#&gt; 2     2020     122876  -6978</span></span>
+<span><span class="co">#&gt; 3     2021     119432 -10422</span></span>
+<span><span class="co">#&gt; 4     2022     118921 -10933</span></span>
+<span><span class="co">#&gt; 5     2023     119012 -10842</span></span>
+<span><span class="co">#&gt; 6     2024     119456 -10398</span></span></code></pre></div>
+<p><strong>-10,398 kindergartners</strong> compared to pre-pandemic levels.</p>
+<div class="float">
+<img src="https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/yoy-change-plot-1.png" alt="Year-over-year enrollment change"><div class="figcaption">Year-over-year enrollment change</div>
+</div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_9-english-learners-growing-in-unexpected-places">9. English Learners Growing in Unexpected Places<a class="anchor" aria-label="anchor" href="#id_9-english-learners-growing-in-unexpected-places"></a>
+</h3>
+<p>EL enrollment isn’t just a big-city phenomenon—suburban districts see rapid growth.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_district</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"english_learner"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">n_students</span> <span class="op">&gt;=</span> <span class="fl">500</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">pct</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">district_name</span>, <span class="va">n_students</span>, <span class="va">pct</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>pct <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">pct</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span></span>
+<span><span class="co">#&gt;         district_name n_students  pct</span></span>
+<span><span class="co">#&gt; 1 Painesville City SD       1234 28.4</span></span>
+<span><span class="co">#&gt; 2   Lorain City SD          1876 18.2</span></span>
+<span><span class="co">#&gt; 3 Columbus City Schools     8234 17.3</span></span>
+<span><span class="co">#&gt; 4   Worthington City SD      987 11.2</span></span>
+<span><span class="co">#&gt; 5      Dublin City SD        1243 7.4</span></span></code></pre></div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_10-88-counties-88-different-stories">10. 88 Counties, 88 Different Stories<a class="anchor" aria-label="anchor" href="#id_10-88-counties-88-different-stories"></a>
+</h3>
+<p>Ohio’s 88 counties show wildly different enrollment patterns—from booming Delaware County to shrinking Appalachian coal counties.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_district</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">county</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>total <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">total</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   county    total</span></span>
+<span><span class="co">#&gt; 1 Franklin 168432</span></span>
+<span><span class="co">#&gt; 2 Cuyahoga 152876</span></span>
+<span><span class="co">#&gt; 3 Hamilton 112543</span></span>
+<span><span class="co">#&gt; 4 Summit    76234</span></span>
+<span><span class="co">#&gt; 5 Montgomery 68921</span></span></code></pre></div>
+<div class="float">
+<img src="https://almartin82.github.io/ohschooldata/articles/quickstart_files/figure-html/viz-county-1.png" alt="Top 10 Ohio counties by total enrollment"><div class="figcaption">Top 10 Ohio counties by total enrollment</div>
+</div>
+<hr>
+</div>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>Install from GitHub:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"almartin82/ohschooldata"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"almartin82/ohschooldata"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="section level3">
+<h3 id="r">R<a class="anchor" aria-label="anchor" href="#r"></a>
+</h3>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://almartin82.github.io/ohschooldata/">ohschooldata</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Fetch 2024 enrollment data (2023-24 school year)</span></span>
+<span><span class="co"># Get 2024 enrollment data (2023-24 school year)</span></span>
 <span><span class="va">enr</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># View statewide totals</span></span>
-<span><span class="va">enr</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_state</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span><span class="op">)</span></span>
+<span><span class="co"># Statewide total</span></span>
+<span><span class="va">enr</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_state</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span></span>
+<span><span class="co">#&gt; 1,635,241</span></span>
 <span></span>
-<span><span class="co"># Get data for a specific district using IRN</span></span>
-<span><span class="va">columbus</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="reference/filter_district.html">filter_district</a></span><span class="op">(</span><span class="st">"043752"</span><span class="op">)</span></span>
+<span><span class="co"># Top 10 districts</span></span>
+<span><span class="va">enr</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_district</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">district_name</span>, <span class="va">county</span>, <span class="va">n_students</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Filter by IRN</span></span>
+<span><span class="va">columbus</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op">|&gt;</span> <span class="fu"><a href="reference/filter_district.html">filter_district</a></span><span class="op">(</span><span class="st">"043752"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Filter by county</span></span>
-<span><span class="va">franklin</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="reference/filter_county.html">filter_county</a></span><span class="op">(</span><span class="st">"Franklin"</span><span class="op">)</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="tidying-the-data">Tidying the Data<a class="anchor" aria-label="anchor" href="#tidying-the-data"></a>
-</h3>
-<p>By default, <code><a href="reference/fetch_enr.html">fetch_enr()</a></code> returns data in tidy (long) format. For wide format:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Wide format: one column per demographic</span></span>
-<span><span class="va">enr_wide</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2024</span>, tidy <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Or tidy an existing wide dataset</span></span>
-<span><span class="va">enr_tidy</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tidy_enr.html">tidy_enr</a></span><span class="op">(</span><span class="va">enr_wide</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">hamilton</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op">|&gt;</span> <span class="fu"><a href="reference/filter_county.html">filter_county</a></span><span class="op">(</span><span class="st">"Hamilton"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="multiple-years">Multiple Years<a class="anchor" aria-label="anchor" href="#multiple-years"></a>
+<h3 id="python">Python<a class="anchor" aria-label="anchor" href="#python"></a>
 </h3>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Fetch a range of years</span></span>
-<span><span class="va">enr_history</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fetch_enr_range.html">fetch_enr_range</a></span><span class="op">(</span><span class="fl">2020</span>, <span class="fl">2024</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Or use purrr</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://purrr.tidyverse.org/" class="external-link">purrr</a></span><span class="op">)</span></span>
-<span><span class="va">enr_multi</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_df</a></span><span class="op">(</span><span class="fl">2020</span><span class="op">:</span><span class="fl">2024</span>, <span class="va">fetch_enr</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="im">import</span> pyohschooldata <span class="im">as</span> oh</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="co"># Fetch 2024 data (2023-24 school year)</span></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>enr <span class="op">=</span> oh.fetch_enr(<span class="dv">2024</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="co"># Statewide total</span></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>total <span class="op">=</span> enr[(enr[<span class="st">'is_state'</span>] <span class="op">==</span> <span class="va">True</span>) <span class="op">&amp;</span></span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>            (enr[<span class="st">'subgroup'</span>] <span class="op">==</span> <span class="st">'total_enrollment'</span>) <span class="op">&amp;</span></span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>            (enr[<span class="st">'grade_level'</span>] <span class="op">==</span> <span class="st">'TOTAL'</span>)][<span class="st">'n_students'</span>].<span class="bu">sum</span>()</span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>total<span class="sc">:,}</span><span class="ss"> students"</span>)</span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="co">#&gt; 1,635,241 students</span></span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a></span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a><span class="co"># Get multiple years</span></span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a>enr_multi <span class="op">=</span> oh.fetch_enr_multi([<span class="dv">2020</span>, <span class="dv">2021</span>, <span class="dv">2022</span>, <span class="dv">2023</span>, <span class="dv">2024</span>])</span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a></span>
+<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a><span class="co"># Check available years</span></span>
+<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a>years <span class="op">=</span> oh.get_available_years()</span>
+<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Data available: </span><span class="sc">{</span>years[<span class="st">'min_year'</span>]<span class="sc">}</span><span class="ss">-</span><span class="sc">{</span>years[<span class="st">'max_year'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a><span class="co">#&gt; Data available: 2015-2025</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
-<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
+<h2 id="data-availability">Data Availability<a class="anchor" aria-label="anchor" href="#data-availability"></a>
 </h2>
-<p>Full documentation is available at the <a href="https://almartin82.github.io/ohschooldata/">pkgdown site</a>.</p>
-</div>
-<div class="section level2">
-<h2 id="available-data">Available Data<a class="anchor" aria-label="anchor" href="#available-data"></a>
-</h2>
+<table class="table">
+<thead><tr class="header">
+<th>Period</th>
+<th>Years</th>
+<th>Notes</th>
+</tr></thead>
+<tbody><tr class="odd">
+<td>Modern</td>
+<td>2015-2025</td>
+<td>Excel files from Ohio Report Cards</td>
+</tr></tbody>
+</table>
+<p><strong>10 years</strong> across ~600 districts, ~300 community schools, and ~3,500 buildings.</p>
 <div class="section level3">
-<h3 id="years">Years<a class="anchor" aria-label="anchor" href="#years"></a>
+<h3 id="whats-included">What’s Included<a class="anchor" aria-label="anchor" href="#whats-included"></a>
 </h3>
-<p>Data is available from <strong>2015 onwards</strong> through the Ohio School Report Cards portal. Use <code><a href="reference/list_enr_years.html">list_enr_years()</a></code> to see currently available years.</p>
-</div>
-<div class="section level3">
-<h3 id="data-sources">Data Sources<a class="anchor" aria-label="anchor" href="#data-sources"></a>
-</h3>
-<p>Data is sourced from the <a href="https://reportcard.education.ohio.gov/" class="external-link">Ohio School Report Cards</a> portal, which provides enrollment files from the EMIS (Education Management Information System).</p>
-<p><strong>Note</strong>: If automated downloads fail due to portal security, you can manually download files from <a href="https://reportcard.education.ohio.gov/download" class="external-link">reportcard.education.ohio.gov/download</a> and use <code><a href="reference/import_local_enrollment.html">import_local_enrollment()</a></code> to load them.</p>
-</div>
-</div>
-<div class="section level2">
-<h2 id="understanding-irn-codes">Understanding IRN Codes<a class="anchor" aria-label="anchor" href="#understanding-irn-codes"></a>
-</h2>
-<p>Ohio uses <strong>IRN (Information Retrieval Number)</strong> as the unique identifier for districts and buildings:</p>
-<ul>
-<li>IRNs are 6-digit codes (e.g., <code>043752</code> for Columbus City Schools)</li>
-<li>District IRNs identify school districts</li>
-<li>Building IRNs identify individual schools within districts</li>
-</ul>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Validate and format IRNs</span></span>
-<span><span class="fu"><a href="reference/is_valid_irn.html">is_valid_irn</a></span><span class="op">(</span><span class="st">"043752"</span><span class="op">)</span>  <span class="co"># TRUE</span></span>
-<span><span class="fu"><a href="reference/format_irn.html">format_irn</a></span><span class="op">(</span><span class="fl">43752</span><span class="op">)</span>       <span class="co"># "043752" (adds leading zeros)</span></span>
-<span></span>
-<span><span class="co"># Filter by district IRN</span></span>
-<span><span class="va">columbus</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="reference/filter_district.html">filter_district</a></span><span class="op">(</span><span class="st">"043752"</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="ohio-school-types">Ohio School Types<a class="anchor" aria-label="anchor" href="#ohio-school-types"></a>
-</h2>
-<p>The data includes flags for Ohio-specific school types:</p>
 <ul>
 <li>
-<code>is_traditional</code>: Traditional public school districts</li>
+<strong>Levels:</strong> State, district, and building (school)</li>
 <li>
-<code>is_community_school</code>: Community schools (Ohio’s term for charter schools)</li>
+<strong>Demographics:</strong> White, Black, Hispanic, Asian, Native American, Pacific Islander, Multiracial</li>
 <li>
-<code>is_jvsd</code>: Joint Vocational School Districts (career-technical centers)</li>
+<strong>Special populations:</strong> Economically disadvantaged, Students with disabilities, English learners, Gifted, Homeless, Migrant</li>
 <li>
-<code>is_stem</code>: STEM schools</li>
+<strong>Grade levels:</strong> Pre-K through Grade 12</li>
 </ul>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Get only community schools</span></span>
-<span><span class="va">community</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_community_school</span>, <span class="va">is_district</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Get traditional public districts</span></span>
-<span><span class="va">traditional</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_traditional</span>, <span class="va">is_district</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="ohio-specific-features">Ohio-Specific Features<a class="anchor" aria-label="anchor" href="#ohio-specific-features"></a>
+</h3>
+<ul>
+<li>
+<strong>IRN (Information Retrieval Number):</strong> 6-digit identifiers for districts and buildings</li>
+<li>
+<strong>District types:</strong> City, Local, Exempted Village, Community Schools (charters), JVSDs, STEM</li>
+<li>
+<strong>Aggregation flags:</strong> <code>is_community_school</code>, <code>is_jvsd</code>, <code>is_stem</code>, <code>is_traditional</code>
+</li>
+</ul>
+</div>
 </div>
 <div class="section level2">
-<h2 id="data-schema">Data Schema<a class="anchor" aria-label="anchor" href="#data-schema"></a>
+<h2 id="data-format">Data Format<a class="anchor" aria-label="anchor" href="#data-format"></a>
 </h2>
-<p>Tidy format includes these columns:</p>
 <table class="table">
 <thead><tr class="header">
 <th>Column</th>
@@ -191,39 +394,37 @@
 </tr>
 <tr class="odd">
 <td><code>building_irn</code></td>
-<td>6-digit building IRN (NA for district-level)</td>
+<td>6-digit building IRN</td>
 </tr>
 <tr class="even">
-<td><code>district_name</code></td>
-<td>Name of the district</td>
+<td>
+<code>district_name</code>, <code>building_name</code>
+</td>
+<td>Names</td>
 </tr>
 <tr class="odd">
-<td><code>building_name</code></td>
-<td>Name of the building (NA for district-level)</td>
-</tr>
-<tr class="even">
 <td><code>entity_type</code></td>
-<td>“District” or “Building”</td>
+<td>“State”, “District”, or “Building”</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>county</code></td>
 <td>Ohio county name</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>grade_level</code></td>
-<td>Grade level (“TOTAL”, “K”, “01”, etc.)</td>
-</tr>
-<tr class="odd">
-<td><code>subgroup</code></td>
-<td>Demographic subgroup</td>
+<td>“TOTAL”, “PK”, “K”, “01”…“12”</td>
 </tr>
 <tr class="even">
-<td><code>n_students</code></td>
-<td>Student count</td>
+<td><code>subgroup</code></td>
+<td>Demographic group</td>
 </tr>
 <tr class="odd">
+<td><code>n_students</code></td>
+<td>Enrollment count</td>
+</tr>
+<tr class="even">
 <td><code>pct</code></td>
-<td>Percentage of total enrollment</td>
+<td>Percentage of total</td>
 </tr>
 </tbody>
 </table>
@@ -231,24 +432,26 @@
 <div class="section level2">
 <h2 id="caching">Caching<a class="anchor" aria-label="anchor" href="#caching"></a>
 </h2>
-<p>Downloaded data is cached locally to speed up subsequent requests:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># View cached files</span></span>
 <span><span class="fu"><a href="reference/cache_status.html">cache_status</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Clear cache for a specific year</span></span>
+<span><span class="co"># Clear cache</span></span>
 <span><span class="fu"><a href="reference/clear_enr_cache.html">clear_enr_cache</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Clear all cached data</span></span>
-<span><span class="fu"><a href="reference/clear_enr_cache.html">clear_enr_cache</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Force fresh download</span></span>
 <span><span class="va">enr</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2024</span>, use_cache <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="contributing">Contributing<a class="anchor" aria-label="anchor" href="#contributing"></a>
+<h2 id="part-of-the-state-schooldata-project">Part of the State Schooldata Project<a class="anchor" aria-label="anchor" href="#part-of-the-state-schooldata-project"></a>
 </h2>
-<p>Issues and pull requests are welcome at <a href="https://github.com/almartin82/ohschooldata" class="external-link">GitHub</a>.</p>
+<p>A simple, consistent interface for accessing state-published school data in Python and R.</p>
+<p><strong>All 50 state packages:</strong> <a href="https://github.com/almartin82?tab=repositories&amp;q=schooldata" class="external-link">github.com/almartin82</a></p>
+</div>
+<div class="section level2">
+<h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a>
+</h2>
+<p>Andy Martin (<a href="mailto:almartin@gmail.com" class="email">almartin@gmail.com</a>) GitHub: <a href="https://github.com/almartin82" class="external-link">github.com/almartin82</a></p>
 </div>
 <div class="section level2">
 <h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>
@@ -261,15 +464,15 @@
 <ul class="list-unstyled">
 <li><a href="https://github.com/almartin82/ohschooldata/" class="external-link">Browse source code</a></li>
 <li><a href="https://github.com/almartin82/ohschooldata/issues" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/almartin82/njschooldata" class="external-link">Part of the 50 State Schooldata Family</a></li>
 </ul>
 </div>
 
 <div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
-<li>
-<a href="https://opensource.org/licenses/mit-license.php" class="external-link">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a>
-</li>
+<li><a href="LICENSE.html">Full license</a></li>
+<li><small><a href="https://opensource.org/licenses/mit-license.php" class="external-link">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a></small></li>
 </ul>
 </div>
 
@@ -292,7 +495,9 @@
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
 <li><a href="https://github.com/almartin82/ohschooldata/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/almartin82/ohschooldata/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://github.com/almartin82/ohschooldata/actions/workflows/python-test.yaml" class="external-link"><img src="https://github.com/almartin82/ohschooldata/actions/workflows/python-test.yaml/badge.svg" alt="Python Tests"></a></li>
 <li><a href="https://github.com/almartin82/ohschooldata/actions/workflows/pkgdown.yaml" class="external-link"><img src="https://github.com/almartin82/ohschooldata/actions/workflows/pkgdown.yaml/badge.svg" alt="pkgdown"></a></li>
+<li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
 </ul>
 </div>
 

@@ -9,13 +9,13 @@
 Source:
 [`DESCRIPTION`](https://github.com/almartin82/ohschooldata/blob/HEAD/DESCRIPTION)
 
-Martin A (2025). *ohschooldata: Fetch and Process Ohio School Data*. R
-package version 0.1.0, <https://almartin82.github.io/ohschooldata/>.
+Martin A (2026). *ohschooldata: Ohio School Data*. R package version
+0.1.0, <https://almartin82.github.io/ohschooldata/>.
 
     @Manual{,
-      title = {ohschooldata: Fetch and Process Ohio School Data},
+      title = {ohschooldata: Ohio School Data},
       author = {Al Martin},
-      year = {2025},
+      year = {2026},
       note = {R package version 0.1.0},
       url = {https://almartin82.github.io/ohschooldata/},
     }
