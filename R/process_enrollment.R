@@ -95,13 +95,13 @@ process_enr_modern <- function(df, end_year) {
   }
 
   # District Name
-  dist_name_col <- find_col("^District.*Name$|^Dist.*Name$|^DISTRICT$")
+  dist_name_col <- find_col("^District.*Name$|^Dist.*Name$|^DIST_NAME$|^DISTRICT$")
   if (!is.null(dist_name_col)) {
     result$district_name <- trimws(df[[dist_name_col]])
   }
 
   # Building Name
-  bldg_name_col <- find_col("^Building.*Name$|^Bldg.*Name$|^School.*Name$|^BUILDING$")
+  bldg_name_col <- find_col("^Building.*Name$|^Bldg.*Name$|^BLDG_NAME$|^School.*Name$|^BUILDING$")
   if (!is.null(bldg_name_col)) {
     result$building_name <- trimws(df[[bldg_name_col]])
   }
@@ -132,24 +132,28 @@ process_enr_modern <- function(df, end_year) {
   }
 
   # === DEMOGRAPHICS - Race/Ethnicity ===
+  # ODE format uses STUDENT_WHITE, STUDENT_BLACK, STUDENT_LATINO, etc.
 
   demo_map <- list(
-    "white" = "White|%.*White|WHITE",
-    "black" = "Black|African.*American|%.*Black|BLACK",
-    "hispanic" = "Hispanic|Latino|%.*Hispanic|HISPANIC",
-    "asian" = "Asian|%.*Asian|ASIAN",
-    "pacific_islander" = "Pacific.*Islander|Hawaiian|%.*Pacific|PACIFIC",
-    "native_american" = "American.*Indian|Native.*American|%.*Indian|INDIAN",
-    "multiracial" = "Multi.*Racial|Two.*More|%.*Multi|MULTI"
+    "white" = "STUDENT_WHITE|White|%.*White|WHITE",
+    "black" = "STUDENT_BLACK|Black|African.*American|%.*Black|BLACK",
+    "hispanic" = "STUDENT_LATINO|Hispanic|Latino|%.*Hispanic|HISPANIC",
+    "asian" = "STUDENT_ASIAN|Asian|%.*Asian|ASIAN",
+    "pacific_islander" = "STUDENT_NATHAW|Pacific.*Islander|Hawaiian|%.*Pacific|PACIFIC",
+    "native_american" = "STUDENT_NATIVEAM|American.*Indian|Native.*American|%.*Indian|INDIAN",
+    "multiracial" = "STUDENT_MULTI|Multi.*Racial|Two.*More|%.*Multi|MULTI"
   )
 
   for (new_name in names(demo_map)) {
     pattern <- demo_map[[new_name]]
-    # Look for count columns first, then percentage columns
+    # Look for ODE format first, then count columns, then percentage columns
+    ode_col <- find_col(paste0("^", strsplit(pattern, "\\|")[[1]][1], "$"))
     count_col <- find_col(paste0("^#.*", pattern, "|^Count.*", pattern, "|^N_", toupper(new_name)))
     pct_col <- find_col(paste0("^%.*", pattern, "|^Pct.*", pattern, "|^PCT_", toupper(new_name)))
 
-    if (!is.null(count_col)) {
+    if (!is.null(ode_col)) {
+      result[[new_name]] <- safe_numeric(df[[ode_col]])
+    } else if (!is.null(count_col)) {
       result[[new_name]] <- safe_numeric(df[[count_col]])
     } else if (!is.null(pct_col) && "enrollment_total" %in% names(result)) {
       # Convert percentage to count
@@ -159,11 +163,12 @@ process_enr_modern <- function(df, end_year) {
   }
 
   # === SPECIAL POPULATIONS ===
+  # ODE format uses STUDENT_ECONDIS, STUDENT_W_DISABILITY, STUDENT_EL
 
   special_map <- list(
-    "economically_disadvantaged" = "Econom.*Disadv|Low.*Income|ED|%.*Econom",
-    "disability" = "Disabilit|Special.*Ed|IEP|SWD|%.*Disab",
-    "english_learner" = "English.*Learner|EL|LEP|%.*English.*Learn",
+    "economically_disadvantaged" = "STUDENT_ECONDIS|Econom.*Disadv|Low.*Income|ED|%.*Econom",
+    "disability" = "STUDENT_W_DISABILITY|Disabilit|Special.*Ed|IEP|SWD|%.*Disab",
+    "english_learner" = "STUDENT_EL|English.*Learner|EL|LEP|%.*English.*Learn",
     "gifted" = "Gifted|%.*Gifted",
     "migrant" = "Migrant|%.*Migrant",
     "homeless" = "Homeless|%.*Homeless"
@@ -171,10 +176,14 @@ process_enr_modern <- function(df, end_year) {
 
   for (new_name in names(special_map)) {
     pattern <- special_map[[new_name]]
+    # Look for ODE format first
+    ode_col <- find_col(paste0("^", strsplit(pattern, "\\|")[[1]][1], "$"))
     count_col <- find_col(paste0("^#.*", pattern, "|^Count.*", pattern, "|^N_"))
     pct_col <- find_col(paste0("^%.*", pattern, "|^Pct.*", pattern, "|^PCT_"))
 
-    if (!is.null(count_col)) {
+    if (!is.null(ode_col)) {
+      result[[new_name]] <- safe_numeric(df[[ode_col]])
+    } else if (!is.null(count_col)) {
       result[[new_name]] <- safe_numeric(df[[count_col]])
     } else if (!is.null(pct_col) && "enrollment_total" %in% names(result)) {
       pct_val <- safe_numeric(df[[pct_col]])
@@ -183,22 +192,23 @@ process_enr_modern <- function(df, end_year) {
   }
 
   # === GRADE-LEVEL ENROLLMENT ===
+  # ODE format uses PRESCHOOL, KINDERGARTEN, GRADE_1, GRADE_2, etc.
 
   grade_map <- list(
-    "grade_pk" = "^PK$|Pre.*K|PreK|Grade.*PK",
-    "grade_k" = "^K$|^KG$|Kindergarten|Grade.*K$",
-    "grade_01" = "^1$|^01$|Grade.*1$|^G1$",
-    "grade_02" = "^2$|^02$|Grade.*2$|^G2$",
-    "grade_03" = "^3$|^03$|Grade.*3$|^G3$",
-    "grade_04" = "^4$|^04$|Grade.*4$|^G4$",
-    "grade_05" = "^5$|^05$|Grade.*5$|^G5$",
-    "grade_06" = "^6$|^06$|Grade.*6$|^G6$",
-    "grade_07" = "^7$|^07$|Grade.*7$|^G7$",
-    "grade_08" = "^8$|^08$|Grade.*8$|^G8$",
-    "grade_09" = "^9$|^09$|Grade.*9$|^G9$",
-    "grade_10" = "^10$|Grade.*10$|^G10$",
-    "grade_11" = "^11$|Grade.*11$|^G11$",
-    "grade_12" = "^12$|Grade.*12$|^G12$"
+    "grade_pk" = "^PRESCHOOL$|^PK$|Pre.*K|PreK|Grade.*PK",
+    "grade_k" = "^KINDERGARTEN$|^K$|^KG$|Kindergarten|Grade.*K$",
+    "grade_01" = "^GRADE_1$|^1$|^01$|Grade.*1$|^G1$",
+    "grade_02" = "^GRADE_2$|^2$|^02$|Grade.*2$|^G2$",
+    "grade_03" = "^GRADE_3$|^3$|^03$|Grade.*3$|^G3$",
+    "grade_04" = "^GRADE_4$|^4$|^04$|Grade.*4$|^G4$",
+    "grade_05" = "^GRADE_5$|^5$|^05$|Grade.*5$|^G5$",
+    "grade_06" = "^GRADE_6$|^6$|^06$|Grade.*6$|^G6$",
+    "grade_07" = "^GRADE_7$|^7$|^07$|Grade.*7$|^G7$",
+    "grade_08" = "^GRADE_8$|^8$|^08$|Grade.*8$|^G8$",
+    "grade_09" = "^GRADE_9$|^9$|^09$|Grade.*9$|^G9$",
+    "grade_10" = "^GRADE_10$|^10$|Grade.*10$|^G10$",
+    "grade_11" = "^GRADE_11$|^11$|Grade.*11$|^G11$",
+    "grade_12" = "^GRADE_12$|^12$|Grade.*12$|^G12$"
   )
 
   for (new_name in names(grade_map)) {
@@ -206,6 +216,30 @@ process_enr_modern <- function(df, end_year) {
     grade_col <- find_col(pattern)
     if (!is.null(grade_col)) {
       result[[new_name]] <- safe_numeric(df[[grade_col]])
+    }
+  }
+
+  # === GENDER ===
+  # ODE format uses STUDENT_MALE, STUDENT_FEMALE
+
+  male_col <- find_col("^STUDENT_MALE$|^Male$|^#.*Male$|^Count.*Male$")
+  if (!is.null(male_col)) {
+    result$male <- safe_numeric(df[[male_col]])
+  }
+
+  female_col <- find_col("^STUDENT_FEMALE$|^Female$|^#.*Female$|^Count.*Female$")
+  if (!is.null(female_col)) {
+    result$female <- safe_numeric(df[[female_col]])
+  }
+
+  # === CALCULATE ENROLLMENT TOTAL IF NOT ALREADY SET ===
+  # ODE format doesn't have a total column; we sum grade columns
+
+  if (!"enrollment_total" %in% names(result) || all(is.na(result$enrollment_total))) {
+    grade_cols <- names(result)[grepl("^grade_", names(result))]
+    if (length(grade_cols) > 0) {
+      result$enrollment_total <- rowSums(result[, grade_cols, drop = FALSE], na.rm = TRUE)
+      result$enrollment_total[result$enrollment_total == 0] <- NA
     }
   }
 

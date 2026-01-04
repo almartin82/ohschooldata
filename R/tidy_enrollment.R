@@ -145,6 +145,16 @@ tidy_enr <- function(df) {
 #' with_flags <- id_enr_aggs(tidy_data)
 #' }
 id_enr_aggs <- function(df) {
+  # Ensure building_irn column exists (some years may not have building data)
+  if (!"building_irn" %in% names(df)) {
+    df$building_irn <- NA_character_
+  }
+
+  # Ensure district_type column exists
+  if (!"district_type" %in% names(df)) {
+    df$district_type <- NA_character_
+  }
+
   df |>
     dplyr::mutate(
       # State level: entity_type == "State" or all IRNs are NA/empty

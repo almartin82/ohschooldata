@@ -113,7 +113,7 @@ download_ode_enrollment <- function(end_year) {
   response <- httr::GET(
     public_url,
     httr::write_disk(tname, overwrite = TRUE),
-    httr::timeout(120),
+    httr::timeout(300),
     httr::config(ssl_verifypeer = FALSE)
   )
 
