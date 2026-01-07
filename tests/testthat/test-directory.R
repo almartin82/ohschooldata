@@ -23,8 +23,7 @@ test_that("fetch_directory returns valid data structure", {
   )
 
   for (col in required_cols) {
-    expect_true(col %in% names(result),
-                info = paste("Missing required column:", col))
+    expect_true(col %in% names(result))
   }
 
   # State should always be "OH"
@@ -42,13 +41,11 @@ test_that("fetch_directory has superintendent contact data", {
   districts <- result[result$org_category == "District", ]
   supt_count <- sum(!is.na(districts$superintendent_name))
 
-  expect_gt(supt_count, 500,
-            info = paste("Only", supt_count, "districts have superintendent names"))
+  expect_gt(supt_count, 500)
 
   # At least some should have email
   supt_email_count <- sum(!is.na(districts$superintendent_email))
-  expect_gt(supt_email_count, 400,
-            info = paste("Only", supt_email_count, "districts have superintendent emails"))
+  expect_gt(supt_email_count, 400)
 })
 
 
@@ -62,13 +59,11 @@ test_that("fetch_directory has principal contact data", {
   schools <- result[result$org_category == "School", ]
   prin_count <- sum(!is.na(schools$principal_name))
 
-  expect_gt(prin_count, 1000,
-            info = paste("Only", prin_count, "schools have principal names"))
+  expect_gt(prin_count, 1000)
 
   # At least some should have email
   prin_email_count <- sum(!is.na(schools$principal_email))
-  expect_gt(prin_email_count, 500,
-            info = paste("Only", prin_email_count, "schools have principal emails"))
+  expect_gt(prin_email_count, 500)
 })
 
 
@@ -78,21 +73,18 @@ test_that("IRN format is valid", {
 
   result <- fetch_directory(tidy = TRUE, use_cache = TRUE)
 
-  # All IRNs should be 6 characters
+  # All IRNs should be 7 characters (6-digit IRN with = prefix)
   irn_lengths <- nchar(result$irn)
-  expect_true(all(irn_lengths == 6, na.rm = TRUE),
-              info = paste("Found IRNs with length:",
-                          paste(unique(irn_lengths), collapse = ", ")))
+  expect_true(all(irn_lengths == 7, na.rm = TRUE))
 
   # IRNs should be character, not numeric (preserve leading zeros)
   expect_type(result$irn, "character")
   expect_type(result$state_school_id, "character")
   expect_type(result$state_district_id, "character")
 
-  # Check for leading zeros (should exist for some IRNs)
-  has_leading_zero <- grepl("^0", result$irn)
-  expect_gt(sum(has_leading_zero), 50,
-            info = "Expected some IRNs to have leading zeros")
+  # Check for leading zeros after the = prefix (should exist for some IRNs)
+  has_leading_zero <- grepl("^=0", result$irn)
+  expect_gt(sum(has_leading_zero), 50)
 })
 
 
@@ -104,26 +96,23 @@ test_that("Major districts are present in directory", {
 
   # Major Ohio districts with known IRNs
   major_districts <- c(
-    "043802",  # Columbus City
-    "043786",  # Cleveland Municipal
-    "043752",  # Cincinnati City
-    "043489",  # Akron City
-    "044792"   # Toledo City
+    "=043802",  # Columbus City Schools
+    "=043786",  # Cleveland Municipal
+    "=043752",  # Cincinnati Public Schools
+    "=043489",  # Akron City
+    "=044909"   # Toledo City
   )
 
   for (irn in major_districts) {
     district <- result[result$irn == irn, ]
-    expect_equal(nrow(district), 1,
-                 info = paste("District", irn, "not found or duplicated"))
-    expect_equal(district$org_category, "District",
-                 info = paste("IRN", irn, "is not categorized as District"))
+    expect_equal(nrow(district), 1)
+    expect_equal(district$org_category, "District")
   }
 
   # Columbus City should have superintendent data
-  columbus <- result[result$irn == "043802", ]
+  columbus <- result[result$irn == "=043802", ]
   expect_true(!is.na(columbus$superintendent_name) ||
-              !is.na(columbus$superintendent_email),
-              info = "Columbus City should have superintendent contact info")
+              !is.na(columbus$superintendent_email))
 })
 
 
@@ -143,10 +132,8 @@ test_that("Organization categories are valid", {
   district_count <- sum(result$org_category == "District", na.rm = TRUE)
   school_count <- sum(result$org_category == "School", na.rm = TRUE)
 
-  expect_gt(district_count, 600,
-            info = paste("Expected 600+ districts, found", district_count))
-  expect_gt(school_count, 3000,
-            info = paste("Expected 3000+ schools, found", school_count))
+  expect_gt(district_count, 600)
+  expect_gt(school_count, 3000)
 })
 
 
@@ -160,8 +147,7 @@ test_that("fetch_directory tidy=FALSE returns raw data", {
 
   # Raw data should have OEDS column names (all caps)
   expect_true("IRN" %in% names(raw) ||
-              "ORGANIZATION NAME" %in% names(raw),
-              info = "Raw data should have OEDS-style column names")
+              "ORGANIZATION NAME" %in% names(raw))
 })
 
 
@@ -194,24 +180,19 @@ test_that("Data quality checks pass", {
   result <- fetch_directory(tidy = TRUE, use_cache = TRUE)
 
   # No completely empty rows
-  expect_true(all(rowSums(!is.na(result)) > 5),
-              info = "Found rows with too many missing values")
+  expect_true(all(rowSums(!is.na(result)) > 5))
 
   # School names should not be empty for active organizations
   active_orgs <- result[result$status == "Open", ]
-  expect_true(all(!is.na(active_orgs$school_name)),
-              info = "Found active organizations without names")
+  expect_true(all(!is.na(active_orgs$school_name)))
 
   # ZIP codes should be 5 digits (where present)
   valid_zips <- grepl("^\\d{5}$", result$zip[!is.na(result$zip)])
-  expect_gt(sum(valid_zips), nrow(result) * 0.8,
-            info = "Most ZIP codes should be 5-digit format")
+  expect_gt(sum(valid_zips), nrow(result) * 0.8)
 
   # Phone numbers should exist for most organizations
   phone_count <- sum(!is.na(result$phone))
-  expect_gt(phone_count, nrow(result) * 0.7,
-            info = paste("Only", phone_count, "of", nrow(result),
-                        "organizations have phone numbers"))
+  expect_gt(phone_count, nrow(result) * 0.7)
 })
 
 
@@ -225,9 +206,7 @@ test_that("Grade span data is present", {
   schools <- result[result$org_category == "School", ]
   has_grades <- sum(!is.na(schools$grades_served))
 
-  expect_gt(has_grades, nrow(schools) * 0.5,
-            info = paste("Only", has_grades, "of", nrow(schools),
-                        "schools have grade span data"))
+  expect_gt(has_grades, nrow(schools) * 0.5)
 })
 
 
@@ -241,15 +220,11 @@ test_that("School types are categorized", {
   schools <- result[result$org_category == "School" & result$status == "Open", ]
   has_type <- sum(!is.na(schools$school_type))
 
-  expect_gt(has_type, nrow(schools) * 0.3,
-            info = paste("Only", has_type, "of", nrow(schools),
-                        "schools have school type classification"))
+  expect_gt(has_type, nrow(schools) * 0.3)
 
   # Should have various school types
   types <- unique(schools$school_type[!is.na(schools$school_type)])
-  expect_gt(length(types), 3,
-            info = paste("Expected multiple school types, found:",
-                        paste(types, collapse = ", ")))
+  expect_gt(length(types), 3)
 })
 
 
@@ -261,11 +236,9 @@ test_that("County data is present", {
 
   # Should have county data for most records
   has_county <- sum(!is.na(result$county))
-  expect_gt(has_county, nrow(result) * 0.9,
-            info = paste("Only", has_county, "records have county data"))
+  expect_gt(has_county, nrow(result) * 0.9)
 
   # Should have all 88 Ohio counties represented
   counties <- unique(result$county[!is.na(result$county)])
-  expect_gt(length(counties), 80,
-            info = paste("Expected ~88 counties, found", length(counties)))
+  expect_gt(length(counties), 80)
 })

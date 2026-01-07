@@ -56,6 +56,35 @@ enr <- fetch_enr(2024)
 head(enr)
 ```
 
+    ##   end_year district_irn building_irn       district_name building_name
+    ## 1     2024       000442       0000NA    Manchester Local          <NA>
+    ## 2     2024       043489       0000NA          Akron City          <NA>
+    ## 3     2024       043497       0000NA       Alliance City          <NA>
+    ## 4     2024       043505       0000NA        Ashland City          <NA>
+    ## 5     2024       043513       0000NA Ashtabula Area City          <NA>
+    ## 6     2024       043521       0000NA         Athens City          <NA>
+    ##   entity_type    county district_type grade_level         subgroup n_students
+    ## 1    District     Adams      District       TOTAL total_enrollment        689
+    ## 2    District    Summit      District       TOTAL total_enrollment      19984
+    ## 3    District     Stark      District       TOTAL total_enrollment       2933
+    ## 4    District   Ashland      District       TOTAL total_enrollment       3042
+    ## 5    District Ashtabula      District       TOTAL total_enrollment       2879
+    ## 6    District    Athens      District       TOTAL total_enrollment       2288
+    ##   pct is_state is_district is_building is_community_school is_jvsd is_stem
+    ## 1   1    FALSE        TRUE       FALSE               FALSE   FALSE   FALSE
+    ## 2   1    FALSE        TRUE       FALSE               FALSE   FALSE   FALSE
+    ## 3   1    FALSE        TRUE       FALSE               FALSE   FALSE   FALSE
+    ## 4   1    FALSE        TRUE       FALSE               FALSE   FALSE   FALSE
+    ## 5   1    FALSE        TRUE       FALSE               FALSE   FALSE   FALSE
+    ## 6   1    FALSE        TRUE       FALSE               FALSE   FALSE   FALSE
+    ##   is_traditional
+    ## 1           TRUE
+    ## 2           TRUE
+    ## 3           TRUE
+    ## 4           TRUE
+    ## 5           TRUE
+    ## 6           TRUE
+
 ### Understanding the Year Parameter
 
 The `end_year` parameter represents the end of the academic year:
@@ -70,6 +99,9 @@ The `end_year` parameter represents the end of the academic year:
 # See which years are available
 list_enr_years()
 ```
+
+    ##  [1] 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021
+    ## [16] 2022 2023 2024 2025
 
 Data is generally available from 2015 onwards.
 
@@ -89,6 +121,29 @@ enr %>%
          entity_type, grade_level, subgroup, n_students, pct) %>%
   head(10)
 ```
+
+    ##    end_year district_irn building_irn       district_name entity_type
+    ## 1      2024       000442       0000NA    Manchester Local    District
+    ## 2      2024       043489       0000NA          Akron City    District
+    ## 3      2024       043497       0000NA       Alliance City    District
+    ## 4      2024       043505       0000NA        Ashland City    District
+    ## 5      2024       043513       0000NA Ashtabula Area City    District
+    ## 6      2024       043521       0000NA         Athens City    District
+    ## 7      2024       043539       0000NA      Barberton City    District
+    ## 8      2024       043547       0000NA    Bay Village City    District
+    ## 9      2024       043554       0000NA      Beachwood City    District
+    ## 10     2024       043562       0000NA        Bedford City    District
+    ##    grade_level         subgroup n_students pct
+    ## 1        TOTAL total_enrollment        689   1
+    ## 2        TOTAL total_enrollment      19984   1
+    ## 3        TOTAL total_enrollment       2933   1
+    ## 4        TOTAL total_enrollment       3042   1
+    ## 5        TOTAL total_enrollment       2879   1
+    ## 6        TOTAL total_enrollment       2288   1
+    ## 7        TOTAL total_enrollment       3634   1
+    ## 8        TOTAL total_enrollment       2365   1
+    ## 9        TOTAL total_enrollment       1556   1
+    ## 10       TOTAL total_enrollment       2853   1
 
 | Column          | Description                                  |
 |-----------------|----------------------------------------------|
@@ -121,6 +176,13 @@ enr %>%
   pull(subgroup)
 ```
 
+    ##  [1] "total_enrollment"           "white"                     
+    ##  [3] "black"                      "hispanic"                  
+    ##  [5] "asian"                      "native_american"           
+    ##  [7] "pacific_islander"           "multiracial"               
+    ##  [9] "economically_disadvantaged" "disability"                
+    ## [11] "english_learner"
+
 ### Wide Format
 
 If you prefer one column per demographic (wide format):
@@ -135,6 +197,12 @@ enr_wide %>%
   select(end_year, enrollment_total, white, black, hispanic, asian,
          economically_disadvantaged)
 ```
+
+    ## [1] end_year                   enrollment_total          
+    ## [3] white                      black                     
+    ## [5] hispanic                   asian                     
+    ## [7] economically_disadvantaged
+    ## <0 rows> (or 0-length row.names)
 
 You can also convert between formats:
 
@@ -163,12 +231,28 @@ identifier for all educational entities.
 ``` r
 # Validate an IRN
 is_valid_irn("043752")  # TRUE
-is_valid_irn("12345")   # FALSE (only 5 digits)
+```
 
+    ## [1] TRUE
+
+``` r
+is_valid_irn("12345")   # FALSE (only 5 digits)
+```
+
+    ## [1] FALSE
+
+``` r
 # Format a numeric IRN with leading zeros
 format_irn(43752)       # "043752"
+```
+
+    ## [1] "043752"
+
+``` r
 format_irn("43752")     # "043752"
 ```
+
+    ## [1] "043752"
 
 ### Finding District IRNs
 
@@ -179,6 +263,10 @@ enr %>%
   filter(grepl("Columbus", district_name, ignore.case = TRUE)) %>%
   select(district_irn, district_name, county, n_students)
 ```
+
+    ##   district_irn                  district_name   county n_students
+    ## 1       043802 Columbus City Schools District Franklin      45381
+    ## 2       049312           Columbus Grove Local   Putnam        726
 
 ## Filtering Data
 
@@ -246,6 +334,18 @@ enr %>%
   head(10)
 ```
 
+    ##        county  n
+    ## 1    Cuyahoga 31
+    ## 2    Hamilton 22
+    ## 3    Trumbull 20
+    ## 4       Stark 17
+    ## 5      Summit 17
+    ## 6    Franklin 16
+    ## 7  Montgomery 16
+    ## 8      Lorain 14
+    ## 9    Mahoning 14
+    ## 10 Columbiana 11
+
 ## Multi-Year Analysis
 
 ### Fetch Multiple Years
@@ -268,6 +368,13 @@ state_trend <- get_state_enrollment(2020:2024)
 state_trend
 ```
 
+    ##   end_year n_districts total_enrollment
+    ## 1     2020         609          1571880
+    ## 2     2021         608          1515306
+    ## 3     2022         607          1525865
+    ## 4     2023         608          1520728
+    ## 5     2024         607          1507996
+
 ## Grade Level Analysis
 
 ### Individual Grades
@@ -279,6 +386,9 @@ enr %>%
   select(grade_level, n_students) %>%
   arrange(grade_level)
 ```
+
+    ## [1] grade_level n_students 
+    ## <0 rows> (or 0-length row.names)
 
 ### Grade Aggregates
 
@@ -293,6 +403,9 @@ grade_aggs %>%
   filter(is_state) %>%
   select(grade_level, n_students)
 ```
+
+    ## # A tibble: 0 × 2
+    ## # ℹ 2 variables: grade_level <chr>, n_students <dbl>
 
 ## Visualization Examples
 
@@ -320,6 +433,8 @@ ggplot(top_districts, aes(x = reorder(district_name, n_students), y = n_students
   theme(panel.grid.major.y = element_blank())
 ```
 
+![](quickstart_files/figure-html/viz-top-districts-1.png)
+
 ### Demographic Composition
 
 ``` r
@@ -342,6 +457,8 @@ ggplot(state_demos, aes(x = reorder(subgroup, -n_students), y = pct)) +
   ) +
   theme_minimal()
 ```
+
+![](quickstart_files/figure-html/viz-demographics-1.png)
 
 ### Enrollment Trend Over Time
 
@@ -368,6 +485,8 @@ ggplot(state_trend, aes(x = end_year, y = n_students)) +
   theme_minimal()
 ```
 
+![](quickstart_files/figure-html/viz-trend-1.png)
+
 ### County Comparison
 
 ``` r
@@ -391,6 +510,8 @@ ggplot(county_enr, aes(x = reorder(county, total_enrollment), y = total_enrollme
   theme_minimal()
 ```
 
+![](quickstart_files/figure-html/viz-county-1.png)
+
 ## Cache Management
 
 Downloaded data is cached locally to speed up repeated requests:
@@ -398,7 +519,19 @@ Downloaded data is cached locally to speed up repeated requests:
 ``` r
 # View cached files
 cache_status()
+```
 
+    ##   year type size_mb age_days
+    ## 1 2018 tidy    0.70        0
+    ## 2 2019 tidy    1.41        0
+    ## 3 2020 tidy    1.41        0
+    ## 4 2021 tidy    1.40        0
+    ## 5 2022 tidy    1.43        0
+    ## 6 2023 tidy    1.42        0
+    ## 7 2024 tidy    1.42        0
+    ## 8 2024 wide    0.18        0
+
+``` r
 # Clear cache for a specific year
 clear_enr_cache(2024)
 

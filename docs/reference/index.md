@@ -2,7 +2,7 @@
 
 ## Fetch Data
 
-Download enrollment data from ODEW
+Download enrollment and directory data from ODEW
 
 - [`fetch_enr()`](https://almartin82.github.io/ohschooldata/reference/fetch_enr.md)
   : Fetch Ohio enrollment data
@@ -10,6 +10,8 @@ Download enrollment data from ODEW
   : Fetch enrollment data for multiple years
 - [`fetch_enr_range()`](https://almartin82.github.io/ohschooldata/reference/fetch_enr_range.md)
   : Fetch enrollment data for a range of years
+- [`fetch_directory()`](https://almartin82.github.io/ohschooldata/reference/fetch_directory.md)
+  : Fetch Ohio school directory data
 - [`get_available_years()`](https://almartin82.github.io/ohschooldata/reference/get_available_years.md)
   : Get available years for enrollment data
 - [`get_raw_enr()`](https://almartin82.github.io/ohschooldata/reference/get_raw_enr.md)
@@ -58,3 +60,5 @@ Manage locally cached data
   : Show cache status
 - [`clear_enr_cache()`](https://almartin82.github.io/ohschooldata/reference/clear_enr_cache.md)
   : Clear the ohschooldata cache
+- [`clear_directory_cache()`](https://almartin82.github.io/ohschooldata/reference/clear_directory_cache.md)
+  : Clear school directory cache
