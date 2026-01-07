@@ -22,11 +22,12 @@ navbar:
 
 reference:
 - title: Fetch Data
-  desc: Download enrollment data from ODEW
+  desc: Download enrollment and directory data from ODEW
   contents:
   - fetch_enr
   - fetch_enr_multi
   - fetch_enr_range
+  - fetch_directory
   - get_available_years
   - get_raw_enr
   - get_state_enrollment
@@ -57,6 +58,7 @@ reference:
   contents:
   - cache_status
   - clear_enr_cache
+  - clear_directory_cache
 
 home:
   links:

@@ -1,6 +1,7 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://almartin82.github.io/ohschooldata/404.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/CLAUDE.html</loc></url>
+<url><loc>https://almartin82.github.io/ohschooldata/EXPANSION.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/LICENSE-text.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/LICENSE.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/articles/data-quality-qa.html</loc></url>
@@ -8,13 +9,17 @@
 <url><loc>https://almartin82.github.io/ohschooldata/articles/quickstart.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/authors.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/index.html</loc></url>
+<url><loc>https://almartin82.github.io/ohschooldata/reference/build_cache_path_directory.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/cache_exists.html</loc></url>
+<url><loc>https://almartin82.github.io/ohschooldata/reference/cache_exists_directory.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/cache_status.html</loc></url>
+<url><loc>https://almartin82.github.io/ohschooldata/reference/clear_directory_cache.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/clear_enr_cache.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/download_ode_enrollment.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/download_ode_excel.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/download_ohio_excel.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/enr_grade_aggs.html</loc></url>
+<url><loc>https://almartin82.github.io/ohschooldata/reference/fetch_directory.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/fetch_enr.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/fetch_enr_multi.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/fetch_enr_range.html</loc></url>
@@ -24,6 +29,7 @@
 <url><loc>https://almartin82.github.io/ohschooldata/reference/get_available_years.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/get_cache_dir.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/get_cache_path.html</loc></url>
+<url><loc>https://almartin82.github.io/ohschooldata/reference/get_raw_directory.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/get_raw_enr.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/get_raw_enr_legacy.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/get_raw_enr_modern.html</loc></url>
@@ -34,12 +40,15 @@
 <url><loc>https://almartin82.github.io/ohschooldata/reference/is_valid_irn.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/list_enr_years.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/ohschooldata-package.html</loc></url>
+<url><loc>https://almartin82.github.io/ohschooldata/reference/process_directory.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/process_enr.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/process_enr_legacy.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/process_enr_modern.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/read_cache.html</loc></url>
+<url><loc>https://almartin82.github.io/ohschooldata/reference/read_cache_directory.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/safe_numeric.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/tidy_enr.html</loc></url>
 <url><loc>https://almartin82.github.io/ohschooldata/reference/write_cache.html</loc></url>
+<url><loc>https://almartin82.github.io/ohschooldata/reference/write_cache_directory.html</loc></url>
 </urlset>
 

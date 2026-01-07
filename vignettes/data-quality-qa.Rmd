@@ -14,11 +14,8 @@ knitr::opts_chunk$set(
   warning = TRUE,
   fig.width = 8,
   fig.height = 5,
-  cache = TRUE,
-  eval = FALSE
+  cache = TRUE
 )
-
-# Note: Set eval = TRUE above and re-render if you have data available locally
 ```
 
 ## Overview
