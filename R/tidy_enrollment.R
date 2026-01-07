@@ -59,7 +59,10 @@ tidy_enr <- function(df) {
           dplyr::select(dplyr::all_of(c(invariants, "n_students", "enrollment_total"))) |>
           dplyr::mutate(
             subgroup = .x,
-            pct = n_students / enrollment_total,
+            pct = dplyr::case_when(
+              enrollment_total > 0 ~ pmin(n_students / enrollment_total, 1.0),
+              TRUE ~ 0.0
+            ),
             grade_level = "TOTAL"
           ) |>
           dplyr::select(dplyr::all_of(c(invariants, "grade_level", "subgroup", "n_students", "pct")))
@@ -114,7 +117,10 @@ tidy_enr <- function(df) {
           dplyr::select(dplyr::all_of(c(invariants, "n_students", "enrollment_total"))) |>
           dplyr::mutate(
             subgroup = "total_enrollment",
-            pct = n_students / enrollment_total,
+            pct = dplyr::case_when(
+              enrollment_total > 0 ~ pmin(n_students / enrollment_total, 1.0),
+              TRUE ~ 0.0
+            ),
             grade_level = gl
           ) |>
           dplyr::select(dplyr::all_of(c(invariants, "grade_level", "subgroup", "n_students", "pct")))
@@ -157,6 +163,13 @@ id_enr_aggs <- function(df) {
 
   df |>
     dplyr::mutate(
+      # Aggregation flag: state, district, or campus
+      aggregation_flag = dplyr::case_when(
+        !is.na(district_irn) & !is.na(building_irn) & district_irn != "" & building_irn != "" ~ "campus",
+        !is.na(district_irn) & district_irn != "" ~ "district",
+        TRUE ~ "state"
+      ),
+
       # State level: entity_type == "State" or all IRNs are NA/empty
       is_state = entity_type == "State" |
         (is.na(district_irn) & is.na(building_irn)),
@@ -208,6 +221,7 @@ enr_grade_aggs <- function(df) {
     "district_name", "building_name",
     "entity_type", "county", "district_type",
     "subgroup",
+    "aggregation_flag",
     "is_state", "is_district", "is_building",
     "is_community_school", "is_jvsd", "is_stem", "is_traditional"
   )
