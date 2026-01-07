@@ -20,18 +20,6 @@
 library(testthat)
 library(httr)
 
-# Skip if no network connectivity
-skip_if_offline <- function() {
-  tryCatch({
-    response <- httr::HEAD("https://www.google.com", httr::timeout(5))
-    if (httr::http_error(response)) {
-      skip("No network connectivity")
-    }
-  }, error = function(e) {
-    skip("No network connectivity")
-  })
-}
-
 # ==============================================================================
 # STEP 1: URL Availability Tests
 # ==============================================================================

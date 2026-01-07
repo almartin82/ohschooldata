@@ -398,7 +398,8 @@ clear_directory_cache <- function() {
   files <- list.files(cache_dir, pattern = "^directory_", full.names = TRUE)
 
   if (length(files) > 0) {
-    file.remove(files)
+    # Use unlink() instead of file.remove() for better Windows compatibility
+    unlink(files, recursive = FALSE, force = TRUE)
     message(paste("Removed", length(files), "cached directory file(s)"))
   } else {
     message("No cached directory files to remove")

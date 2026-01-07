@@ -114,7 +114,8 @@ clear_enr_cache <- function(years = NULL) {
   }
 
   if (length(files) > 0) {
-    file.remove(files)
+    # Use unlink() instead of file.remove() for better Windows compatibility
+    unlink(files, recursive = FALSE, force = TRUE)
     message(paste("Removed", length(files), "cached file(s)"))
   } else {
     message("No cached files to remove")
