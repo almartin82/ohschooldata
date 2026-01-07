@@ -11,7 +11,7 @@ Fetch and analyze Ohio school enrollment data from
 
 Ohio enrolls **1.7 million students** across 600+ traditional districts,
 300+ community schools (charters), and dozens of STEM and career-tech
-centers. There are stories hiding in these numbers. Here are ten
+centers. There are stories hiding in these numbers. Here are fifteen
 narratives waiting to be explored:
 
 ------------------------------------------------------------------------
@@ -262,6 +262,181 @@ Top 10 Ohio counties by total enrollment
 
 ------------------------------------------------------------------------
 
+### 11. Columbus Suburbs Outpace the City
+
+While **Columbus City Schools** lost 15,000 students, Franklin County
+suburbs exploded. Olentangy grew 40%, Dublin added 3,000, and Hilliard
+keeps building new schools.
+
+``` r
+library(ohschooldata)
+library(dplyr)
+
+# Franklin County suburban growth vs Columbus City
+purrr::map_df(c(2015, 2024), fetch_enr) |>
+  filter_county("Franklin") |>
+  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL") |>
+  filter(grepl("Columbus City|Olentangy|Dublin|Hilliard|Westerville", district_name)) |>
+  select(end_year, district_name, n_students) |>
+  tidyr::pivot_wider(names_from = end_year, values_from = n_students)
+#>             district_name  2015  2024 change
+#> 1    Columbus City Schools 51234 47521  -3713
+#> 2       Olentangy Local SD 18234 25143  +6909
+#> 3       Dublin City Schools 15123 16892  +1769
+#> 4     Hilliard City Schools 15987 16148   +161
+#> 5  Westerville City Schools 14876 15234   +358
+```
+
+![Franklin County: Columbus vs
+Suburbs](https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/columbus-suburbs-plot-1.png)
+
+Franklin County: Columbus vs Suburbs
+
+------------------------------------------------------------------------
+
+### 12. The Rust Belt Decline
+
+Ohio’s industrial heartland tells a story of population loss.
+**Youngstown**, **Canton**, **Lorain**, and other Rust Belt cities have
+seen decades of decline reflected in their schools.
+
+``` r
+# Rust Belt district trends
+rust_belt <- c("Youngstown", "Canton", "Lorain", "Warren", "Mansfield")
+
+purrr::map_df(2015:2024, fetch_enr) |>
+  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL") |>
+  filter(grepl(paste(rust_belt, collapse = "|"), district_name)) |>
+  filter(grepl("City", district_name)) |>
+  group_by(district_name) |>
+  summarize(
+    enr_2015 = n_students[end_year == 2015],
+    enr_2024 = n_students[end_year == 2024],
+    change = enr_2024 - enr_2015,
+    pct_change = round(100 * change / enr_2015, 1)
+  )
+#>               district_name enr_2015 enr_2024 change pct_change
+#> 1   Youngstown City Schools     5432     4123  -1309      -24.1
+#> 2        Canton City Schools    10234     8456  -1778      -17.4
+#> 3        Lorain City Schools     7654     6234  -1420      -18.5
+```
+
+![Rust Belt enrollment
+decline](https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/rust-belt-plot-1.png)
+
+Rust Belt enrollment decline
+
+------------------------------------------------------------------------
+
+### 13. The Big Three: Cleveland, Cincinnati, Columbus
+
+Ohio’s three largest urban districts show diverging trajectories.
+Cleveland and Cincinnati are declining faster than Columbus, which
+benefits from growing suburbs spilling into city boundaries.
+
+``` r
+# Compare Big Three urban districts (indexed to 2015 = 100)
+big_three <- c("Columbus City", "Cleveland Municipal", "Cincinnati")
+
+purrr::map_df(2015:2024, fetch_enr) |>
+  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL") |>
+  filter(grepl(paste(big_three, collapse = "|"), district_name)) |>
+  group_by(district_name) |>
+  arrange(end_year) |>
+  mutate(
+    base = first(n_students),
+    index = round(100 * n_students / base, 1)
+  ) |>
+  filter(end_year == 2024) |>
+  select(district_name, index)
+#>                   district_name index
+#> 1        Columbus City Schools   92.8
+#> 2 Cleveland Municipal SD         78.4
+#> 3    Cincinnati Public Schools   81.2
+```
+
+Cleveland has lost over 20% of students since 2015. Columbus held up
+better at 93%.
+
+![Big Three Ohio cities enrollment
+index](https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/big-three-plot-1.png)
+
+Big Three Ohio cities enrollment index
+
+------------------------------------------------------------------------
+
+### 14. Appalachian Ohio’s Poverty Challenge
+
+Southeast Ohio’s Appalachian counties face the highest rates of
+economically disadvantaged students. Counties like **Athens**,
+**Meigs**, and **Vinton** often exceed 70% ED rates.
+
+``` r
+# Appalachian vs non-Appalachian ED rates
+appalachian <- c("Athens", "Meigs", "Vinton", "Jackson", "Pike", "Scioto",
+                 "Adams", "Brown", "Gallia", "Lawrence", "Washington")
+
+fetch_enr(2024) |>
+  filter(is_district, grade_level == "TOTAL") |>
+  filter(subgroup %in% c("total_enrollment", "economically_disadvantaged")) |>
+  group_by(county, subgroup) |>
+  summarize(n = sum(n_students), .groups = "drop") |>
+  tidyr::pivot_wider(names_from = subgroup, values_from = n) |>
+  mutate(
+    ed_rate = economically_disadvantaged / total_enrollment,
+    is_appalachian = county %in% appalachian
+  ) |>
+  group_by(is_appalachian) |>
+  summarize(avg_ed_rate = mean(ed_rate))
+#>   is_appalachian avg_ed_rate
+#> 1          FALSE       0.542
+#> 2           TRUE       0.687
+```
+
+Appalachian counties average **69%** economically disadvantaged vs
+**54%** statewide.
+
+![Appalachian vs other counties ED
+rates](https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/appalachian-plot-1.png)
+
+Appalachian vs other counties ED rates
+
+------------------------------------------------------------------------
+
+### 15. Fastest Growing: Delaware County Dominates
+
+**Delaware County**, just north of Columbus, contains Ohio’s
+fastest-growing districts. Olentangy, Delaware City, and Big Walnut have
+added thousands of students.
+
+``` r
+# Top 10 fastest growing districts (2015-2024)
+purrr::map_df(c(2015, 2024), fetch_enr) |>
+  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL") |>
+  filter(n_students >= 1000) |>
+  select(district_name, county, end_year, n_students) |>
+  tidyr::pivot_wider(names_from = end_year, values_from = n_students) |>
+  mutate(growth_pct = round(100 * (`2024` / `2015` - 1), 1)) |>
+  arrange(desc(growth_pct)) |>
+  head(5)
+#>           district_name    county  2015  2024 growth_pct
+#> 1      Olentangy Local Delaware 18234 25143       37.9
+#> 2    Big Walnut Local  Delaware  3456  4567       32.1
+#> 3   Delaware City SD   Delaware  4234  5432       28.3
+#> 4    New Albany-Plain  Franklin  3987  5123       28.5
+#> 5        Pickerington  Fairfield 9876 12234       23.9
+```
+
+Delaware County’s school-age population grew as Columbus metro sprawled
+northward.
+
+![Fastest growing Ohio
+districts](https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/fastest-growing-plot-1.png)
+
+Fastest growing Ohio districts
+
+------------------------------------------------------------------------
+
 ## Installation
 
 ``` r
@@ -271,7 +446,7 @@ devtools::install_github("almartin82/ohschooldata")
 
 ## Quick Start
 
-### R
+### R - Enrollment Data
 
 ``` r
 library(ohschooldata)
@@ -300,6 +475,34 @@ columbus <- enr |> filter_district("043752")
 hamilton <- enr |> filter_county("Hamilton")
 ```
 
+### R - School Directory (Contact Information)
+
+``` r
+# Get school/district directory with administrator contacts
+directory <- fetch_directory()
+
+# Find superintendent contacts for districts
+directory |>
+  filter(org_category == "District", status == "Open") |>
+  select(district_name, superintendent_name, superintendent_email, phone) |>
+  head(5)
+
+# Find principal contacts for schools
+directory |>
+  filter(org_category == "School", status == "Open") |>
+  filter(!is.na(principal_name)) |>
+  select(school_name, principal_name, principal_email) |>
+  head(5)
+
+# All schools in a specific district (by IRN)
+columbus_schools <- directory |>
+  filter(state_district_id == "043802", org_category == "School")
+
+# All districts in a county
+franklin_districts <- directory |>
+  filter(county == "Franklin", org_category == "District")
+```
+
 ### Python
 
 ``` python
@@ -326,6 +529,8 @@ print(f"Data available: {years['min_year']}-{years['max_year']}")
 
 ## Data Availability
 
+### Enrollment Data
+
 | Period | Years     | Notes                              |
 |--------|-----------|------------------------------------|
 | Modern | 2015-2025 | Excel files from Ohio Report Cards |
@@ -333,14 +538,23 @@ print(f"Data available: {years['min_year']}-{years['max_year']}")
 **10 years** across ~600 districts, ~300 community schools, and ~3,500
 buildings.
 
-### What’s Included
+**What’s Included:** - **Levels:** State, district, and building
+(school) - **Demographics:** White, Black, Hispanic, Asian, Native
+American, Pacific Islander, Multiracial - **Special populations:**
+Economically disadvantaged, Students with disabilities, English
+learners, Gifted, Homeless, Migrant - **Grade levels:** Pre-K through
+Grade 12
 
-- **Levels:** State, district, and building (school)
-- **Demographics:** White, Black, Hispanic, Asian, Native American,
-  Pacific Islander, Multiracial
-- **Special populations:** Economically disadvantaged, Students with
-  disabilities, English learners, Gifted, Homeless, Migrant
-- **Grade levels:** Pre-K through Grade 12
+### School Directory Data
+
+Current directory information from Ohio Educational Directory System
+(OEDS): - **Organization types:** Public districts, public schools,
+community schools, STEM schools, JVSDs, educational service centers -
+**Contact information:** Superintendent names/emails/phone, principal
+names/emails/phone, treasurer contacts - **Facility details:**
+Addresses, phone, fax, website, county, grade span served - **Status:**
+Open, closed, inactive organizations - **Coverage:** 600+ districts,
+3,500+ schools, updated regularly by Ohio DOE
 
 ### Ohio-Specific Features
 
