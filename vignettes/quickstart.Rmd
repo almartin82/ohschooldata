@@ -413,7 +413,7 @@ enr_fresh <- fetch_enr(2024, use_cache = FALSE)
 
 If automated downloads fail, download files manually and import them:
 
-```{r import-local}
+```{r import-local, eval=FALSE}
 # After downloading from reportcard.education.ohio.gov/download:
 enr_local <- import_local_enrollment(
   district_file = "~/Downloads/23-24_ENROLLMENT_DISTRICT.xlsx",
