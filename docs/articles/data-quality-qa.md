@@ -1632,107 +1632,39 @@ all_enr <- purrr::map_df(years_to_fetch, function(y) {
 
     ## Fetching year: 2015
 
-    ## Downloading enrollment data for 2015 ...
-
-    ##   Downloading from ODE Frequently Requested Data...
-
-    ##   Read 610 district rows
-
-    ## Cached data for 2015
+    ## Using cached data for 2015
 
     ## Fetching year: 2016
 
-    ## Downloading enrollment data for 2016 ...
-
-    ##   Downloading from ODE Frequently Requested Data...
-
-    ##   Read 608 district rows
-
-    ## Cached data for 2016
+    ## Using cached data for 2016
 
     ## Fetching year: 2017
 
-    ## Downloading enrollment data for 2017 ...
-
-    ##   Downloading from ODE Frequently Requested Data...
-
-    ##   Read 610 district rows
-
-    ##   Read 3142 building rows
-
-    ## Cached data for 2017
+    ## Using cached data for 2017
 
     ## Fetching year: 2018
 
-    ## Downloading enrollment data for 2018 ...
-
-    ##   Downloading from ODE Frequently Requested Data...
-
-    ##   Read 610 district rows
-
-    ##   Read 3151 building rows
-
-    ## Cached data for 2018
+    ## Using cached data for 2018
 
     ## Fetching year: 2019
 
-    ## Downloading enrollment data for 2019 ...
-
-    ##   Downloading from ODE Frequently Requested Data...
-
-    ##   Read 610 district rows
-
-    ##   Read 3142 building rows
-
-    ## Cached data for 2019
+    ## Using cached data for 2019
 
     ## Fetching year: 2020
 
-    ## Downloading enrollment data for 2020 ...
-
-    ##   Downloading from ODE Frequently Requested Data...
-
-    ##   Read 610 district rows
-
-    ##   Read 3121 building rows
-
-    ## Cached data for 2020
+    ## Using cached data for 2020
 
     ## Fetching year: 2021
 
-    ## Downloading enrollment data for 2021 ...
-
-    ##   Downloading from ODE Frequently Requested Data...
-
-    ##   Read 609 district rows
-
-    ##   Read 3114 building rows
-
-    ## Cached data for 2021
+    ## Using cached data for 2021
 
     ## Fetching year: 2022
 
-    ## Downloading enrollment data for 2022 ...
-
-    ##   Downloading from ODE Frequently Requested Data...
-
-    ##   Read 609 district rows
-
-    ##   Read 3214 building rows
-
-    ## Cached data for 2022
+    ## Using cached data for 2022
 
     ## Fetching year: 2023
 
-    ## Downloading enrollment data for 2023 ...
-
-    ##   Downloading from ODE Frequently Requested Data...
-
-    ##   Read 609 district rows
-
-    ##   Read 3179 building rows
-
-    ## Cached data for 2023
+    ## Using cached data for 2023
 
     ## Fetching year: 2024
 
@@ -2514,12 +2446,12 @@ sessionInfo()
     ##  [5] jquerylib_0.1.4    systemfonts_1.3.1  textshaping_1.0.4  readxl_1.4.5      
     ##  [9] yaml_2.3.12        fastmap_1.2.0      R6_2.6.1           labeling_0.4.3    
     ## [13] generics_0.1.4     curl_7.0.0         knitr_1.51         htmlwidgets_1.6.4 
-    ## [17] tibble_3.3.0       desc_1.4.3         downloader_0.4.1   bslib_0.9.0       
-    ## [21] pillar_1.11.1      RColorBrewer_1.1-3 rlang_1.1.6        cachem_1.1.0      
+    ## [17] tibble_3.3.1       desc_1.4.3         downloader_0.4.1   bslib_0.9.0       
+    ## [21] pillar_1.11.1      RColorBrewer_1.1-3 rlang_1.1.7        cachem_1.1.0      
     ## [25] xfun_0.55          fs_1.6.6           sass_0.4.10        S7_0.2.1          
     ## [29] otel_0.2.0         cli_3.6.5          withr_3.0.2        pkgdown_2.2.0     
     ## [33] magrittr_2.0.4     digest_0.6.39      grid_4.5.0         rappdirs_0.3.3    
-    ## [37] lifecycle_1.0.4    vctrs_0.6.5        evaluate_1.0.5     glue_1.8.0        
+    ## [37] lifecycle_1.0.5    vctrs_0.6.5        evaluate_1.0.5     glue_1.8.0        
     ## [41] cellranger_1.1.0   farver_2.1.2       codetools_0.2-20   ragg_1.5.0        
-    ## [45] httr_1.4.7         purrr_1.2.0        rmarkdown_2.30     tools_4.5.0       
+    ## [45] httr_1.4.7         purrr_1.2.1        rmarkdown_2.30     tools_4.5.0       
     ## [49] pkgconfig_2.0.3    htmltools_0.5.9

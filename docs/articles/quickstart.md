@@ -521,15 +521,21 @@ Downloaded data is cached locally to speed up repeated requests:
 cache_status()
 ```
 
-    ##   year type size_mb age_days
-    ## 1 2018 tidy    0.70        0
-    ## 2 2019 tidy    1.41        0
-    ## 3 2020 tidy    1.41        0
-    ## 4 2021 tidy    1.40        0
-    ## 5 2022 tidy    1.43        0
-    ## 6 2023 tidy    1.42        0
-    ## 7 2024 tidy    1.42        0
-    ## 8 2024 wide    0.18        0
+    ##    year               type size_mb age_days
+    ## 1  2013               tidy    0.11      0.0
+    ## 2  2015               tidy    0.13      2.6
+    ## 3  2016               tidy    0.13      2.6
+    ## 4  2017               tidy    0.69      2.6
+    ## 5  2018               tidy    0.70      2.6
+    ## 6  2019               tidy    1.41      2.6
+    ## 7  2020               tidy    1.41      2.6
+    ## 8  2021               tidy    1.40      2.6
+    ## 9  2022               tidy    1.43      2.6
+    ## 10 2023               tidy    1.42      2.6
+    ## 11 2024               tidy    1.42      3.9
+    ## 12 2024               wide    0.18      3.9
+    ## 13 2025               tidy    1.41      0.0
+    ## 14   NA directory_tidy.rds    0.43      3.9
 
 ``` r
 # Clear cache for a specific year
