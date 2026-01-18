@@ -433,3 +433,9 @@ enr_tidy <- tidy_enr(enr_processed)
 - See the [Data Quality QA vignette](data-quality-qa.html) for data validation
 - Check `?fetch_enr` for parameter details
 - Use `?filter_district` and `?filter_county` for filtering helpers
+
+## Session Info
+
+```{r session-info}
+sessionInfo()
+```
