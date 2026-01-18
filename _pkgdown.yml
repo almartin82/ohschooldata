@@ -60,6 +60,18 @@ reference:
   - clear_enr_cache
   - clear_directory_cache
 
+articles:
+- title: User Guides
+  navbar: ~
+  contents:
+  - quickstart
+  - data-quality-qa
+- title: Internal
+  contents:
+  - starts_with("CLAUDE")
+  - starts_with("EXPANSION")
+  - starts_with("TODO")
+
 home:
   links:
     - text: "Part of the 50 State Schooldata Family"
