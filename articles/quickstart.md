@@ -50,7 +50,7 @@ which downloads and processes enrollment data:
 
 ``` r
 # Fetch 2024 enrollment data (2023-24 school year)
-enr <- fetch_enr(2024)
+enr <- fetch_enr(2024, use_cache = TRUE)
 
 # View the first few rows
 head(enr)
@@ -189,7 +189,7 @@ If you prefer one column per demographic (wide format):
 
 ``` r
 # Fetch in wide format
-enr_wide <- fetch_enr(2024, tidy = FALSE)
+enr_wide <- fetch_enr(2024, tidy = FALSE, use_cache = TRUE)
 
 # View demographic columns
 enr_wide %>%
@@ -352,11 +352,11 @@ enr %>%
 
 ``` r
 # Fetch a range of years
-enr_history <- fetch_enr_range(2020, 2024)
+enr_history <- fetch_enr_range(2020, 2024, use_cache = TRUE)
 
 # Or use purrr for more control
 library(purrr)
-enr_multi <- map_df(2020:2024, fetch_enr)
+enr_multi <- map_df(2020:2024, ~fetch_enr(.x, use_cache = TRUE))
 ```
 
 ### Statewide Trends
@@ -464,7 +464,7 @@ ggplot(state_demos, aes(x = reorder(subgroup, -n_students), y = pct)) +
 
 ``` r
 # Fetch multiple years for trend analysis
-enr_trend <- fetch_enr_range(2018, 2024)
+enr_trend <- fetch_enr_range(2018, 2024, use_cache = TRUE)
 
 # State enrollment trend
 state_trend <- enr_trend %>%
