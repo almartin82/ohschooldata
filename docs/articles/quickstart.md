@@ -50,7 +50,7 @@ which downloads and processes enrollment data:
 
 ``` r
 # Fetch 2024 enrollment data (2023-24 school year)
-enr <- fetch_enr(2024)
+enr <- fetch_enr(2024, use_cache = TRUE)
 
 # View the first few rows
 head(enr)
@@ -70,20 +70,20 @@ head(enr)
     ## 4    District   Ashland      District       TOTAL total_enrollment       3042
     ## 5    District Ashtabula      District       TOTAL total_enrollment       2879
     ## 6    District    Athens      District       TOTAL total_enrollment       2288
-    ##   pct is_state is_district is_building is_community_school is_jvsd is_stem
-    ## 1   1    FALSE        TRUE       FALSE               FALSE   FALSE   FALSE
-    ## 2   1    FALSE        TRUE       FALSE               FALSE   FALSE   FALSE
-    ## 3   1    FALSE        TRUE       FALSE               FALSE   FALSE   FALSE
-    ## 4   1    FALSE        TRUE       FALSE               FALSE   FALSE   FALSE
-    ## 5   1    FALSE        TRUE       FALSE               FALSE   FALSE   FALSE
-    ## 6   1    FALSE        TRUE       FALSE               FALSE   FALSE   FALSE
-    ##   is_traditional
-    ## 1           TRUE
-    ## 2           TRUE
-    ## 3           TRUE
-    ## 4           TRUE
-    ## 5           TRUE
-    ## 6           TRUE
+    ##   pct aggregation_flag is_state is_district is_building is_community_school
+    ## 1   1           campus    FALSE        TRUE       FALSE               FALSE
+    ## 2   1           campus    FALSE        TRUE       FALSE               FALSE
+    ## 3   1           campus    FALSE        TRUE       FALSE               FALSE
+    ## 4   1           campus    FALSE        TRUE       FALSE               FALSE
+    ## 5   1           campus    FALSE        TRUE       FALSE               FALSE
+    ## 6   1           campus    FALSE        TRUE       FALSE               FALSE
+    ##   is_jvsd is_stem is_traditional
+    ## 1   FALSE   FALSE           TRUE
+    ## 2   FALSE   FALSE           TRUE
+    ## 3   FALSE   FALSE           TRUE
+    ## 4   FALSE   FALSE           TRUE
+    ## 5   FALSE   FALSE           TRUE
+    ## 6   FALSE   FALSE           TRUE
 
 ### Understanding the Year Parameter
 
@@ -189,7 +189,7 @@ If you prefer one column per demographic (wide format):
 
 ``` r
 # Fetch in wide format
-enr_wide <- fetch_enr(2024, tidy = FALSE)
+enr_wide <- fetch_enr(2024, tidy = FALSE, use_cache = TRUE)
 
 # View demographic columns
 enr_wide %>%
@@ -352,11 +352,11 @@ enr %>%
 
 ``` r
 # Fetch a range of years
-enr_history <- fetch_enr_range(2020, 2024)
+enr_history <- fetch_enr_range(2020, 2024, use_cache = TRUE)
 
 # Or use purrr for more control
 library(purrr)
-enr_multi <- map_df(2020:2024, fetch_enr)
+enr_multi <- map_df(2020:2024, ~fetch_enr(.x, use_cache = TRUE))
 ```
 
 ### Statewide Trends
@@ -464,7 +464,7 @@ ggplot(state_demos, aes(x = reorder(subgroup, -n_students), y = pct)) +
 
 ``` r
 # Fetch multiple years for trend analysis
-enr_trend <- fetch_enr_range(2018, 2024)
+enr_trend <- fetch_enr_range(2018, 2024, use_cache = TRUE)
 
 # State enrollment trend
 state_trend <- enr_trend %>%
@@ -581,3 +581,42 @@ enr_tidy <- tidy_enr(enr_processed)
   and
   [`?filter_county`](https://almartin82.github.io/ohschooldata/reference/filter_county.md)
   for filtering helpers
+
+## Session Info
+
+``` r
+sessionInfo()
+```
+
+    ## R version 4.5.0 (2025-04-11)
+    ## Platform: aarch64-apple-darwin22.6.0
+    ## Running under: macOS 26.1
+    ## 
+    ## Matrix products: default
+    ## BLAS:   /opt/homebrew/Cellar/openblas/0.3.30/lib/libopenblasp-r0.3.30.dylib 
+    ## LAPACK: /opt/homebrew/Cellar/r/4.5.0/lib/R/lib/libRlapack.dylib;  LAPACK version 3.12.1
+    ## 
+    ## locale:
+    ## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+    ## 
+    ## time zone: America/New_York
+    ## tzcode source: internal
+    ## 
+    ## attached base packages:
+    ## [1] stats     graphics  grDevices utils     datasets  methods   base     
+    ## 
+    ## other attached packages:
+    ## [1] purrr_1.2.1        ggplot2_4.0.1      dplyr_1.1.4        ohschooldata_0.1.0
+    ## 
+    ## loaded via a namespace (and not attached):
+    ##  [1] gtable_0.3.6       jsonlite_2.0.0     compiler_4.5.0     tidyselect_1.2.1  
+    ##  [5] jquerylib_0.1.4    systemfonts_1.3.1  scales_1.4.0       textshaping_1.0.4 
+    ##  [9] yaml_2.3.12        fastmap_1.2.0      R6_2.6.1           generics_0.1.4    
+    ## [13] knitr_1.51         htmlwidgets_1.6.4  tibble_3.3.1       desc_1.4.3        
+    ## [17] bslib_0.9.0        pillar_1.11.1      RColorBrewer_1.1-3 rlang_1.1.7       
+    ## [21] cachem_1.1.0       xfun_0.55          fs_1.6.6           sass_0.4.10       
+    ## [25] S7_0.2.1           otel_0.2.0         cli_3.6.5          withr_3.0.2       
+    ## [29] pkgdown_2.2.0      magrittr_2.0.4     digest_0.6.39      grid_4.5.0        
+    ## [33] lifecycle_1.0.5    vctrs_0.7.0        evaluate_1.0.5     glue_1.8.0        
+    ## [37] farver_2.1.2       ragg_1.5.0         rmarkdown_2.30     tools_4.5.0       
+    ## [41] pkgconfig_2.0.3    htmltools_0.5.9

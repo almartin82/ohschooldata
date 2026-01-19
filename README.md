@@ -9,447 +9,47 @@
 
 **[Documentation](https://almartin82.github.io/ohschooldata/)** | [GitHub](https://github.com/almartin82/ohschooldata)
 
-Fetch and analyze Ohio school enrollment data from [ODEW](https://education.ohio.gov/) in R or Python. **10 years of data** (2015-2025) for every school, district, and the state.
+## Why ohschooldata?
 
-## What can you find with ohschooldata?
+Ohio enrolls **1.7 million students** across 600+ traditional districts, 300+ community schools (charters), and dozens of STEM and career-tech centers. This package provides programmatic access to 10 years of enrollment data (2015-2025) for every school, district, and the state.
 
-Ohio enrolls **1.7 million students** across 600+ traditional districts, 300+ community schools (charters), and dozens of STEM and career-tech centers. There are stories hiding in these numbers. Here are fifteen narratives waiting to be explored:
-
----
-
-### 1. The Slow Decline
-
-Ohio has lost **75,000 students** since 2015—and rural districts are hit hardest.
-
-```r
-library(ohschooldata)
-library(dplyr)
-
-# Statewide enrollment over time
-purrr::map_df(2015:2024, fetch_enr) |>
-  filter(is_state, subgroup == "total_enrollment", grade_level == "TOTAL") |>
-  select(end_year, n_students)
-#>   end_year n_students
-#> 1     2015    1710592
-#> 2     2016    1702218
-#> 3     2017    1695451
-#> 4     2018    1689947
-#> 5     2019    1685108
-#> 6     2020    1654557
-#> 7     2021    1641289
-#> 8     2022    1636523
-#> 9     2023    1635892
-#> 10    2024    1635241
-```
-
-![Ohio statewide enrollment trend](https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/state-trend-plot-1.png)
-
----
-
-### 2. Columbus City Schools Lost 15,000 Students
-
-**Columbus City Schools** (IRN 043752) has seen massive enrollment decline while suburban Franklin County districts grow.
-
-```r
-fetch_enr(2024) |>
-  filter_county("Franklin") |>
-  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL") |>
-  arrange(desc(n_students)) |>
-  select(district_name, n_students) |>
-  head(5)
-#>              district_name n_students
-#> 1    Columbus City Schools      47521
-#> 2       Dublin City Schools      16892
-#> 3       Hilliard City Schools    16148
-#> 4 Westerville City Schools      15234
-#> 5       Olentangy Local SD      25143
-```
-
-Meanwhile, **Olentangy Local SD** grew from 18,000 to 25,000 students.
-
-![Major Ohio urban district enrollment trends](https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/major-district-plot-1.png)
-
----
-
-### 3. Community Schools Enrolling 115,000+ Students
-
-Ohio's charter sector—called "community schools"—now serves over 115,000 students statewide.
-
-```r
-fetch_enr(2024) |>
-  filter(is_community_school, is_district,
-         subgroup == "total_enrollment", grade_level == "TOTAL") |>
-  summarize(
-    n_schools = n(),
-    total_students = sum(n_students)
-  )
-#>   n_schools total_students
-#> 1       318         115847
-```
-
-Electronic Classroom of Tomorrow (ECOT) once enrolled 15,000+ students before its 2018 closure.
-
----
-
-### 4. Cuyahoga County: Cleveland vs. Suburbs
-
-**Cleveland Metropolitan SD** lost 40% of students since 2000, while Strongsville and Solon grew.
-
-```r
-fetch_enr(2024) |>
-  filter_county("Cuyahoga") |>
-  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL") |>
-  arrange(desc(n_students)) |>
-  select(district_name, n_students) |>
-  head(6)
-#>                  district_name n_students
-#> 1 Cleveland Municipal SD         35892
-#> 2         Parma City Schools      9876
-#> 3    Strongsville City Schools    7432
-#> 4    Lakewood City Schools        5921
-#> 5           Solon City Schools    5412
-#> 6       Shaker Heights City SD    5198
-```
-
----
-
-### 5. 58% Economically Disadvantaged Statewide
-
-Nearly **60%** of Ohio students are classified as economically disadvantaged.
-
-```r
-fetch_enr(2024) |>
-  filter(is_state, grade_level == "TOTAL",
-         subgroup == "economically_disadvantaged") |>
-  select(subgroup, n_students, pct)
-#>                    subgroup n_students   pct
-#> 1 economically_disadvantaged    951432 0.582
-```
-
-Some Appalachian districts exceed 85%.
-
----
-
-### 6. Hispanic Enrollment Doubled in 15 Years
-
-Hispanic student enrollment grew from 4% to nearly 8% statewide.
-
-```r
-purrr::map_df(c(2015, 2020, 2024), fetch_enr) |>
-  filter(is_state, grade_level == "TOTAL", subgroup == "hispanic") |>
-  select(end_year, n_students, pct) |>
-  mutate(pct = round(pct * 100, 1))
-#>   end_year n_students  pct
-#> 1     2015      73421  4.3
-#> 2     2020     112532  6.8
-#> 3     2024     129187  7.9
-```
-
-![Ohio statewide enrollment by race/ethnicity](https://almartin82.github.io/ohschooldata/articles/quickstart_files/figure-html/viz-demographics-1.png)
-
----
-
-### 7. Joint Vocational School Districts Serve 70,000
-
-Ohio's unique **JVSD system** (career-technical centers) enrolls students from multiple districts.
-
-```r
-fetch_enr(2024) |>
-  filter(is_jvsd, is_district,
-         subgroup == "total_enrollment", grade_level == "TOTAL") |>
-  arrange(desc(n_students)) |>
-  select(district_name, n_students) |>
-  head(5)
-#>                   district_name n_students
-#> 1 Tri-County Career Center          2341
-#> 2 Pickaway-Ross Career Center       2156
-#> 3 Mid-East Career Center            1987
-#> 4 Columbiana County Career Center   1854
-#> 5 Mahoning County Career Center     1743
-```
-
----
-
-### 8. Kindergarten Enrollment Dropped 8%
-
-Ohio kindergarten classes are shrinking faster than overall enrollment.
-
-```r
-purrr::map_df(2019:2024, fetch_enr) |>
-  filter(is_state, subgroup == "total_enrollment", grade_level == "K") |>
-  select(end_year, n_students) |>
-  mutate(change = n_students - first(n_students))
-#>   end_year n_students change
-#> 1     2019     129854      0
-#> 2     2020     122876  -6978
-#> 3     2021     119432 -10422
-#> 4     2022     118921 -10933
-#> 5     2023     119012 -10842
-#> 6     2024     119456 -10398
-```
-
-**-10,398 kindergartners** compared to pre-pandemic levels.
-
-![Year-over-year enrollment change](https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/yoy-change-plot-1.png)
-
----
-
-### 9. English Learners Growing in Unexpected Places
-
-EL enrollment isn't just a big-city phenomenon—suburban districts see rapid growth.
-
-```r
-fetch_enr(2024) |>
-  filter(is_district, grade_level == "TOTAL", subgroup == "english_learner") |>
-  filter(n_students >= 500) |>
-  arrange(desc(pct)) |>
-  select(district_name, n_students, pct) |>
-  mutate(pct = round(pct * 100, 1)) |>
-  head(5)
-#>         district_name n_students  pct
-#> 1 Painesville City SD       1234 28.4
-#> 2   Lorain City SD          1876 18.2
-#> 3 Columbus City Schools     8234 17.3
-#> 4   Worthington City SD      987 11.2
-#> 5      Dublin City SD        1243 7.4
-```
-
----
-
-### 10. 88 Counties, 88 Different Stories
-
-Ohio's 88 counties show wildly different enrollment patterns—from booming Delaware County to shrinking Appalachian coal counties.
-
-```r
-fetch_enr(2024) |>
-  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL") |>
-  group_by(county) |>
-  summarize(total = sum(n_students)) |>
-  arrange(desc(total)) |>
-  head(5)
-#>   county    total
-#> 1 Franklin 168432
-#> 2 Cuyahoga 152876
-#> 3 Hamilton 112543
-#> 4 Summit    76234
-#> 5 Montgomery 68921
-```
-
-![Top 10 Ohio counties by total enrollment](https://almartin82.github.io/ohschooldata/articles/quickstart_files/figure-html/viz-county-1.png)
-
----
-
-### 11. Columbus Suburbs Outpace the City
-
-While **Columbus City Schools** lost 15,000 students, Franklin County suburbs exploded. Olentangy grew 40%, Dublin added 3,000, and Hilliard keeps building new schools.
-
-```r
-library(ohschooldata)
-library(dplyr)
-
-# Franklin County suburban growth vs Columbus City
-purrr::map_df(c(2015, 2024), fetch_enr) |>
-  filter_county("Franklin") |>
-  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL") |>
-  filter(grepl("Columbus City|Olentangy|Dublin|Hilliard|Westerville", district_name)) |>
-  select(end_year, district_name, n_students) |>
-  tidyr::pivot_wider(names_from = end_year, values_from = n_students)
-#>             district_name  2015  2024 change
-#> 1    Columbus City Schools 51234 47521  -3713
-#> 2       Olentangy Local SD 18234 25143  +6909
-#> 3       Dublin City Schools 15123 16892  +1769
-#> 4     Hilliard City Schools 15987 16148   +161
-#> 5  Westerville City Schools 14876 15234   +358
-```
-
-![Franklin County: Columbus vs Suburbs](https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/columbus-suburbs-plot-1.png)
-
----
-
-### 12. The Rust Belt Decline
-
-Ohio's industrial heartland tells a story of population loss. **Youngstown**, **Canton**, **Lorain**, and other Rust Belt cities have seen decades of decline reflected in their schools.
-
-```r
-# Rust Belt district trends
-rust_belt <- c("Youngstown", "Canton", "Lorain", "Warren", "Mansfield")
-
-purrr::map_df(2015:2024, fetch_enr) |>
-  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL") |>
-  filter(grepl(paste(rust_belt, collapse = "|"), district_name)) |>
-  filter(grepl("City", district_name)) |>
-  group_by(district_name) |>
-  summarize(
-    enr_2015 = n_students[end_year == 2015],
-    enr_2024 = n_students[end_year == 2024],
-    change = enr_2024 - enr_2015,
-    pct_change = round(100 * change / enr_2015, 1)
-  )
-#>               district_name enr_2015 enr_2024 change pct_change
-#> 1   Youngstown City Schools     5432     4123  -1309      -24.1
-#> 2        Canton City Schools    10234     8456  -1778      -17.4
-#> 3        Lorain City Schools     7654     6234  -1420      -18.5
-```
-
-![Rust Belt enrollment decline](https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/rust-belt-plot-1.png)
-
----
-
-### 13. The Big Three: Cleveland, Cincinnati, Columbus
-
-Ohio's three largest urban districts show diverging trajectories. Cleveland and Cincinnati are declining faster than Columbus, which benefits from growing suburbs spilling into city boundaries.
-
-```r
-# Compare Big Three urban districts (indexed to 2015 = 100)
-big_three <- c("Columbus City", "Cleveland Municipal", "Cincinnati")
-
-purrr::map_df(2015:2024, fetch_enr) |>
-  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL") |>
-  filter(grepl(paste(big_three, collapse = "|"), district_name)) |>
-  group_by(district_name) |>
-  arrange(end_year) |>
-  mutate(
-    base = first(n_students),
-    index = round(100 * n_students / base, 1)
-  ) |>
-  filter(end_year == 2024) |>
-  select(district_name, index)
-#>                   district_name index
-#> 1        Columbus City Schools   92.8
-#> 2 Cleveland Municipal SD         78.4
-#> 3    Cincinnati Public Schools   81.2
-```
-
-Cleveland has lost over 20% of students since 2015. Columbus held up better at 93%.
-
-![Big Three Ohio cities enrollment index](https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/big-three-plot-1.png)
-
----
-
-### 14. Appalachian Ohio's Poverty Challenge
-
-Southeast Ohio's Appalachian counties face the highest rates of economically disadvantaged students. Counties like **Athens**, **Meigs**, and **Vinton** often exceed 70% ED rates.
-
-```r
-# Appalachian vs non-Appalachian ED rates
-appalachian <- c("Athens", "Meigs", "Vinton", "Jackson", "Pike", "Scioto",
-                 "Adams", "Brown", "Gallia", "Lawrence", "Washington")
-
-fetch_enr(2024) |>
-  filter(is_district, grade_level == "TOTAL") |>
-  filter(subgroup %in% c("total_enrollment", "economically_disadvantaged")) |>
-  group_by(county, subgroup) |>
-  summarize(n = sum(n_students), .groups = "drop") |>
-  tidyr::pivot_wider(names_from = subgroup, values_from = n) |>
-  mutate(
-    ed_rate = economically_disadvantaged / total_enrollment,
-    is_appalachian = county %in% appalachian
-  ) |>
-  group_by(is_appalachian) |>
-  summarize(avg_ed_rate = mean(ed_rate))
-#>   is_appalachian avg_ed_rate
-#> 1          FALSE       0.542
-#> 2           TRUE       0.687
-```
-
-Appalachian counties average **69%** economically disadvantaged vs **54%** statewide.
-
-![Appalachian vs other counties ED rates](https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/appalachian-plot-1.png)
-
----
-
-### 15. Fastest Growing: Delaware County Dominates
-
-**Delaware County**, just north of Columbus, contains Ohio's fastest-growing districts. Olentangy, Delaware City, and Big Walnut have added thousands of students.
-
-```r
-# Top 10 fastest growing districts (2015-2024)
-purrr::map_df(c(2015, 2024), fetch_enr) |>
-  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL") |>
-  filter(n_students >= 1000) |>
-  select(district_name, county, end_year, n_students) |>
-  tidyr::pivot_wider(names_from = end_year, values_from = n_students) |>
-  mutate(growth_pct = round(100 * (`2024` / `2015` - 1), 1)) |>
-  arrange(desc(growth_pct)) |>
-  head(5)
-#>           district_name    county  2015  2024 growth_pct
-#> 1      Olentangy Local Delaware 18234 25143       37.9
-#> 2    Big Walnut Local  Delaware  3456  4567       32.1
-#> 3   Delaware City SD   Delaware  4234  5432       28.3
-#> 4    New Albany-Plain  Franklin  3987  5123       28.5
-#> 5        Pickerington  Fairfield 9876 12234       23.9
-```
-
-Delaware County's school-age population grew as Columbus metro sprawled northward.
-
-![Fastest growing Ohio districts](https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/fastest-growing-plot-1.png)
+Part of the [state schooldata project](https://github.com/almartin82/njschooldata), which aims to provide simple, consistent interfaces for accessing state-published school data across all 50 states.
 
 ---
 
 ## Installation
+
+### R
 
 ```r
 # install.packages("devtools")
 devtools::install_github("almartin82/ohschooldata")
 ```
 
-## Quick Start
+### Python
 
-### R - Enrollment Data
-
-```r
-library(ohschooldata)
-library(dplyr)
-
-# Get 2024 enrollment data (2023-24 school year)
-enr <- fetch_enr(2024)
-
-# Statewide total
-enr |>
-  filter(is_state, subgroup == "total_enrollment", grade_level == "TOTAL") |>
-  pull(n_students)
-#> 1,635,241
-
-# Top 10 districts
-enr |>
-  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL") |>
-  arrange(desc(n_students)) |>
-  select(district_name, county, n_students) |>
-  head(10)
-
-# Filter by IRN
-columbus <- enr |> filter_district("043752")
-
-# Filter by county
-hamilton <- enr |> filter_county("Hamilton")
+```bash
+pip install pyohschooldata
 ```
 
-### R - School Directory (Contact Information)
+---
 
-```r
-# Get school/district directory with administrator contacts
-directory <- fetch_directory()
+## Quick Start
 
-# Find superintendent contacts for districts
-directory |>
-  filter(org_category == "District", status == "Open") |>
-  select(district_name, superintendent_name, superintendent_email, phone) |>
-  head(5)
+### R
 
-# Find principal contacts for schools
-directory |>
-  filter(org_category == "School", status == "Open") |>
-  filter(!is.na(principal_name)) |>
-  select(school_name, principal_name, principal_email) |>
-  head(5)
+```{r load-packages}
+library(ohschooldata)
+library(dplyr)
+library(ggplot2)
+```
 
-# All schools in a specific district (by IRN)
-columbus_schools <- directory |>
-  filter(state_district_id == "043802", org_category == "School")
+```{r fetch-single-year}
+# Fetch 2024 enrollment data (2023-24 school year)
+enr <- fetch_enr(2024, use_cache = TRUE)
 
-# All districts in a county
-franklin_districts <- directory |>
-  filter(county == "Franklin", org_category == "District")
+# View the first few rows
+head(enr)
 ```
 
 ### Python
@@ -476,38 +76,351 @@ print(f"Data available: {years['min_year']}-{years['max_year']}")
 #> Data available: 2015-2025
 ```
 
-## Data Availability
+---
 
-### Enrollment Data
+## What can you find with ohschooldata?
 
-| Period | Years | Notes |
-|--------|-------|-------|
-| Modern | 2015-2025 | Excel files from Ohio Report Cards |
+### 1. Ohio Statewide Enrollment is Declining
 
-**10 years** across ~600 districts, ~300 community schools, and ~3,500 buildings.
+Ohio has lost students since 2015, with a notable drop during the pandemic years.
 
-**What's Included:**
-- **Levels:** State, district, and building (school)
-- **Demographics:** White, Black, Hispanic, Asian, Native American, Pacific Islander, Multiracial
-- **Special populations:** Economically disadvantaged, Students with disabilities, English learners, Gifted, Homeless, Migrant
-- **Grade levels:** Pre-K through Grade 12
+```{r statewide-trend}
+# Calculate statewide totals by year
+state_totals <- all_enr %>%
+  filter(
+    entity_type == "District",
+    subgroup == "total_enrollment",
+    grade_level == "TOTAL"
+  ) %>%
+  group_by(end_year) %>%
+  summarize(
+    n_districts = n_distinct(district_irn),
+    total_enrollment = sum(n_students, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(end_year) %>%
+  mutate(
+    yoy_change = total_enrollment - lag(total_enrollment),
+    yoy_pct_change = (total_enrollment / lag(total_enrollment) - 1) * 100
+  )
 
-### School Directory Data
+# Display the trend
+knitr::kable(
+  state_totals,
+  col.names = c("Year", "Districts", "Total Enrollment", "YoY Change", "YoY % Change"),
+  format.args = list(big.mark = ","),
+  digits = 2,
+  caption = "Ohio Statewide Enrollment Trend"
+)
+```
 
-Current directory information from Ohio Educational Directory System (OEDS):
-- **Organization types:** Public districts, public schools, community schools, STEM schools, JVSDs, educational service centers
-- **Contact information:** Superintendent names/emails/phone, principal names/emails/phone, treasurer contacts
-- **Facility details:** Addresses, phone, fax, website, county, grade span served
-- **Status:** Open, closed, inactive organizations
-- **Coverage:** 600+ districts, 3,500+ schools, updated regularly by Ohio DOE
+![Ohio statewide enrollment trend](https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/state-trend-plot-1.png)
 
-### Ohio-Specific Features
+---
 
-- **IRN (Information Retrieval Number):** 6-digit identifiers for districts and buildings
-- **District types:** City, Local, Exempted Village, Community Schools (charters), JVSDs, STEM
-- **Aggregation flags:** `is_community_school`, `is_jvsd`, `is_stem`, `is_traditional`
+### 2. Top 15 Districts Dominate Enrollment
+
+The largest districts account for a significant share of statewide enrollment.
+
+```{r viz-top-districts}
+# Top 15 districts by enrollment
+top_districts <- enr %>%
+  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL") %>%
+  arrange(desc(n_students)) %>%
+  head(15)
+
+ggplot(top_districts, aes(x = reorder(district_name, n_students), y = n_students)) +
+  geom_col(fill = "steelblue") +
+  geom_text(aes(label = scales::comma(n_students)), hjust = -0.1, size = 3) +
+  coord_flip() +
+  scale_y_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.15))) +
+  labs(
+    title = "Top 15 Ohio Districts by Enrollment",
+    subtitle = "2023-24 School Year",
+    x = NULL,
+    y = "Total Enrollment"
+  ) +
+  theme_minimal() +
+  theme(panel.grid.major.y = element_blank())
+```
+
+![Top 15 Ohio districts by enrollment](https://almartin82.github.io/ohschooldata/articles/quickstart_files/figure-html/viz-top-districts-1.png)
+
+---
+
+### 3. Five Major Urban Districts Show Different Trajectories
+
+Columbus, Cleveland, Cincinnati, Toledo, and Akron - Ohio's largest urban districts - each have distinct enrollment patterns over the past decade.
+
+```{r major-district-plot, fig.cap="Major District Enrollment Trends", fig.height=6}
+if (exists("major_district_trends") && nrow(major_district_trends) > 0) {
+  ggplot(major_district_trends, aes(x = end_year, y = n_students, color = target_name)) +
+    geom_line(linewidth = 1) +
+    geom_point(size = 2) +
+    scale_y_continuous(labels = comma) +
+    scale_x_continuous(breaks = unique(major_district_trends$end_year)) +
+    labs(
+      title = "Major Ohio Urban District Enrollment Trends",
+      x = "School Year (End Year)",
+      y = "Total Enrollment",
+      color = "District"
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      legend.position = "bottom"
+    )
+}
+```
+
+![Major Ohio urban district enrollment trends](https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/major-district-plot-1.png)
+
+---
+
+### 4. Demographic Composition Varies Across Ohio
+
+Ohio's student population is becoming more diverse over time.
+
+```{r viz-demographics}
+# Statewide demographic breakdown
+state_demos <- enr %>%
+  filter(is_state, grade_level == "TOTAL",
+         subgroup %in% c("white", "black", "hispanic", "asian", "multiracial")) %>%
+  select(subgroup, n_students, pct) %>%
+  mutate(subgroup = stringr::str_to_title(subgroup))
+
+ggplot(state_demos, aes(x = reorder(subgroup, -n_students), y = pct)) +
+  geom_col(fill = "steelblue") +
+  geom_text(aes(label = scales::percent(pct, accuracy = 0.1)), vjust = -0.5, size = 3) +
+  scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0, 0.1))) +
+  labs(
+    title = "Ohio Statewide Enrollment by Race/Ethnicity",
+    subtitle = "2023-24 School Year",
+    x = NULL,
+    y = "Percent of Total Enrollment"
+  ) +
+  theme_minimal()
+```
+
+![Ohio statewide enrollment by race/ethnicity](https://almartin82.github.io/ohschooldata/articles/quickstart_files/figure-html/viz-demographics-1.png)
+
+---
+
+### 5. Top 10 Counties Contain Most Students
+
+Franklin (Columbus), Cuyahoga (Cleveland), and Hamilton (Cincinnati) counties dominate enrollment.
+
+```{r viz-county}
+# Top 10 counties by total enrollment
+county_enr <- enr %>%
+  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL") %>%
+  group_by(county) %>%
+  summarize(total_enrollment = sum(n_students, na.rm = TRUE), .groups = "drop") %>%
+  arrange(desc(total_enrollment)) %>%
+  head(10)
+
+ggplot(county_enr, aes(x = reorder(county, total_enrollment), y = total_enrollment)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Top 10 Ohio Counties by Total Enrollment",
+    x = NULL,
+    y = "Total Enrollment"
+  ) +
+  theme_minimal()
+```
+
+![Top 10 Ohio counties by enrollment](https://almartin82.github.io/ohschooldata/articles/quickstart_files/figure-html/viz-county-1.png)
+
+---
+
+### 6. Enrollment Trend Shows Steady Decline
+
+The statewide enrollment trend from 2018-2024 shows consistent decline with acceleration during COVID.
+
+```{r viz-trend}
+# Fetch multiple years for trend analysis
+enr_trend <- fetch_enr_range(2018, 2024, use_cache = TRUE)
+
+# State enrollment trend
+state_trend <- enr_trend %>%
+  filter(is_state, subgroup == "total_enrollment", grade_level == "TOTAL") %>%
+  select(end_year, n_students)
+
+ggplot(state_trend, aes(x = end_year, y = n_students)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_point(color = "steelblue", size = 3) +
+  geom_text(aes(label = scales::comma(n_students)), vjust = -1, size = 3) +
+  scale_y_continuous(labels = scales::comma, limits = c(1500000, NA)) +
+  scale_x_continuous(breaks = 2018:2024) +
+  labs(
+    title = "Ohio Statewide Enrollment Trend",
+    x = "School Year End",
+    y = "Total Enrollment"
+  ) +
+  theme_minimal()
+```
+
+![Ohio statewide enrollment trend](https://almartin82.github.io/ohschooldata/articles/quickstart_files/figure-html/viz-trend-1.png)
+
+---
+
+### 7. Year-over-Year Changes Reveal COVID Impact
+
+The 2020 school year saw the largest single-year decline in recent history.
+
+```{r yoy-change-plot, fig.cap="Year-over-Year Enrollment Change"}
+state_totals_filtered <- state_totals %>% filter(!is.na(yoy_pct_change))
+
+if (nrow(state_totals_filtered) > 0) {
+  ggplot(state_totals_filtered, aes(x = end_year, y = yoy_pct_change)) +
+    geom_col(aes(fill = yoy_pct_change > 0)) +
+    geom_hline(yintercept = c(-5, 5), linetype = "dashed", color = "red", alpha = 0.7) +
+    geom_hline(yintercept = 0, color = "black") +
+    scale_fill_manual(values = c("TRUE" = "darkgreen", "FALSE" = "darkred"), guide = "none") +
+    scale_x_continuous(breaks = state_totals_filtered$end_year) +
+    labs(
+      title = "Year-over-Year Enrollment Change",
+      subtitle = "Red dashed lines indicate +/- 5% threshold",
+      x = "School Year (End Year)",
+      y = "Percent Change (%)"
+    ) +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+}
+```
+
+![Year-over-year enrollment change](https://almartin82.github.io/ohschooldata/articles/data-quality-qa_files/figure-html/yoy-change-plot-1.png)
+
+---
+
+### 8. Traditional Districts vs Community Schools vs JVSDs
+
+Ohio has a complex education landscape with traditional districts, community schools (charters), and Joint Vocational School Districts.
+
+```{r school-types}
+# Traditional public districts
+traditional <- enr %>% filter(is_traditional, is_district)
+
+# Community schools (Ohio's term for charter schools)
+community <- enr %>% filter(is_community_school, is_district)
+
+# Joint Vocational School Districts (JVSDs) - Career-technical centers
+jvsd <- enr %>% filter(is_jvsd, is_district)
+
+# STEM schools
+stem <- enr %>% filter(is_stem, is_district)
+```
+
+---
+
+### 9. Filter by County for Regional Analysis
+
+Easily analyze data for specific Ohio counties.
+
+```{r filter-by-county}
+# Get all Franklin County districts and schools
+franklin <- enr %>% filter_county("Franklin")
+
+# Count districts by county
+enr %>%
+  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL") %>%
+  count(county, sort = TRUE) %>%
+  head(10)
+```
+
+---
+
+### 10. Filter by District Using IRN
+
+Ohio uses 6-digit IRN (Information Retrieval Number) codes to identify districts and schools.
+
+```{r filter-by-district}
+# Get Columbus City Schools (district + all buildings)
+columbus <- enr %>% filter_district("043752")
+
+# Get district-level only (no buildings)
+columbus_district <- enr %>% filter_district("043752", include_buildings = FALSE)
+```
+
+---
+
+### 11. Grade-Level Analysis
+
+Analyze enrollment patterns by grade level.
+
+```{r grade-level}
+# Enrollment by grade for state totals
+enr %>%
+  filter(is_state, subgroup == "total_enrollment", grade_level != "TOTAL") %>%
+  select(grade_level, n_students) %>%
+  arrange(grade_level)
+```
+
+---
+
+### 12. Grade Aggregates Show K-8 vs High School Patterns
+
+Create common grade-level groupings for analysis.
+
+```{r grade-aggregates}
+# Create grade aggregates
+grade_aggs <- enr_grade_aggs(enr)
+
+# View K-8 vs High School for state
+grade_aggs %>%
+  filter(is_state) %>%
+  select(grade_level, n_students)
+```
+
+---
+
+### 13. Find Districts by Name Search
+
+Search for districts by name pattern.
+
+```{r find-irn}
+# Search for a district by name
+enr %>%
+  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL") %>%
+  filter(grepl("Columbus", district_name, ignore.case = TRUE)) %>%
+  select(district_irn, district_name, county, n_students)
+```
+
+---
+
+### 14. Multi-Year Analysis Made Easy
+
+Fetch and combine multiple years of data efficiently.
+
+```{r multi-year}
+# Fetch a range of years
+enr_history <- fetch_enr_range(2020, 2024, use_cache = TRUE)
+
+# Or use purrr for more control
+library(purrr)
+enr_multi <- map_df(2020:2024, ~fetch_enr(.x, use_cache = TRUE))
+```
+
+---
+
+### 15. Statewide Trends Function
+
+Get aggregated statewide summaries quickly.
+
+```{r state-trends}
+# Get statewide summary for multiple years
+state_trend <- get_state_enrollment(2020:2024)
+
+state_trend
+```
+
+---
 
 ## Data Format
+
+### Tidy Format (Default)
 
 | Column | Description |
 |--------|-------------|
@@ -522,24 +435,100 @@ Current directory information from Ohio Educational Directory System (OEDS):
 | `n_students` | Enrollment count |
 | `pct` | Percentage of total |
 
-## Caching
+### Subgroups Available
 
-```r
+- **Total**: `total_enrollment`
+- **Race/Ethnicity**: `white`, `black`, `hispanic`, `asian`, `native_american`, `pacific_islander`, `multiracial`
+- **Special Populations**: `economically_disadvantaged`, `disability`, `english_learner`, `gifted`, `migrant`, `homeless`
+
+---
+
+## Data Notes
+
+### Data Source
+
+Data comes directly from the **Ohio Department of Education and Workforce (ODEW)** via two sources:
+
+1. **Primary Source**: Frequently Requested Data - Enrollment files from `education.ohio.gov`
+   - URL Pattern: `education.ohio.gov/getattachment/.../oct_hdcnt_fyYY.xls.aspx`
+   - Format: Excel files with multiple sheets (state, district, building)
+
+2. **Alternative Source**: Ohio Report Card portal at `reportcardstorage.education.ohio.gov`
+   - May require manual download due to dynamic tokens
+
+### Census Day
+
+Ohio counts enrollment on **Census Day** (typically the first week of October). All headcounts reflect students enrolled as of this date.
+
+### Available Years
+
+- **Current coverage**: 2015-2025 (10+ years)
+- **Update frequency**: Annual, typically available by late fall
+
+### Suppression Rules
+
+Ohio applies data suppression to protect student privacy:
+- Counts fewer than 10 students may be suppressed (shown as `*` or `NA`)
+- Small cell sizes may be aggregated into "Other" categories
+
+### Data Quality Caveats
+
+- **Community school closures**: Ohio has seen significant charter school closures (e.g., ECOT in 2018), which can cause large year-over-year changes
+- **District consolidations**: Some districts have merged or reorganized over the time period
+- **IRN changes**: In rare cases, district IRNs may change due to reorganization
+
+### Fiscal Year Mapping
+
+Ohio uses fiscal years in file naming:
+- FY25 = 2024-25 school year (end_year = 2025)
+- FY24 = 2023-24 school year (end_year = 2024)
+
+---
+
+## Cache Management
+
+```{r cache-management}
 # View cached files
 cache_status()
 
-# Clear cache
+# Clear cache for a specific year
 clear_enr_cache(2024)
 
-# Force fresh download
-enr <- fetch_enr(2024, use_cache = FALSE)
+# Clear all cached data
+clear_enr_cache()
+
+# Force fresh download (bypasses cache)
+enr_fresh <- fetch_enr(2024, use_cache = FALSE)
 ```
+
+---
+
+## Importing Local Files
+
+If automated downloads fail due to Ohio's dynamic tokens:
+
+```{r import-local, eval=FALSE}
+# After downloading from reportcard.education.ohio.gov/download:
+enr_local <- import_local_enrollment(
+  district_file = "~/Downloads/23-24_ENROLLMENT_DISTRICT.xlsx",
+  building_file = "~/Downloads/23-24_ENROLLMENT_BUILDING.xlsx",
+  end_year = 2024
+)
+
+# Process the raw data
+enr_processed <- process_enr(enr_local, 2024)
+enr_tidy <- tidy_enr(enr_processed)
+```
+
+---
 
 ## Part of the State Schooldata Project
 
-A simple, consistent interface for accessing state-published school data in Python and R.
+This package is part of the [njschooldata](https://github.com/almartin82/njschooldata) family of packages providing simple, consistent interfaces for accessing state-published school data in Python and R.
 
 **All 50 state packages:** [github.com/almartin82](https://github.com/almartin82?tab=repositories&q=schooldata)
+
+---
 
 ## Author
 

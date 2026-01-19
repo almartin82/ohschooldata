@@ -112,7 +112,7 @@ automated downloads fail, you may need to: 1. Visit <a href="https://reportcard.
 processes enrollment data:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Fetch 2024 enrollment data (2023-24 school year)</span></span>
-<span><span class="va">enr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span></span>
+<span><span class="va">enr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2024</span>, use_cache <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># View the first few rows</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">enr</span><span class="op">)</span></span></code></pre></div>
@@ -130,20 +130,20 @@ processes enrollment data:</p>
 <span><span class="co">## 4    District   Ashland      District       TOTAL total_enrollment       3042</span></span>
 <span><span class="co">## 5    District Ashtabula      District       TOTAL total_enrollment       2879</span></span>
 <span><span class="co">## 6    District    Athens      District       TOTAL total_enrollment       2288</span></span>
-<span><span class="co">##   pct is_state is_district is_building is_community_school is_jvsd is_stem</span></span>
-<span><span class="co">## 1   1    FALSE        TRUE       FALSE               FALSE   FALSE   FALSE</span></span>
-<span><span class="co">## 2   1    FALSE        TRUE       FALSE               FALSE   FALSE   FALSE</span></span>
-<span><span class="co">## 3   1    FALSE        TRUE       FALSE               FALSE   FALSE   FALSE</span></span>
-<span><span class="co">## 4   1    FALSE        TRUE       FALSE               FALSE   FALSE   FALSE</span></span>
-<span><span class="co">## 5   1    FALSE        TRUE       FALSE               FALSE   FALSE   FALSE</span></span>
-<span><span class="co">## 6   1    FALSE        TRUE       FALSE               FALSE   FALSE   FALSE</span></span>
-<span><span class="co">##   is_traditional</span></span>
-<span><span class="co">## 1           TRUE</span></span>
-<span><span class="co">## 2           TRUE</span></span>
-<span><span class="co">## 3           TRUE</span></span>
-<span><span class="co">## 4           TRUE</span></span>
-<span><span class="co">## 5           TRUE</span></span>
-<span><span class="co">## 6           TRUE</span></span></code></pre>
+<span><span class="co">##   pct aggregation_flag is_state is_district is_building is_community_school</span></span>
+<span><span class="co">## 1   1           campus    FALSE        TRUE       FALSE               FALSE</span></span>
+<span><span class="co">## 2   1           campus    FALSE        TRUE       FALSE               FALSE</span></span>
+<span><span class="co">## 3   1           campus    FALSE        TRUE       FALSE               FALSE</span></span>
+<span><span class="co">## 4   1           campus    FALSE        TRUE       FALSE               FALSE</span></span>
+<span><span class="co">## 5   1           campus    FALSE        TRUE       FALSE               FALSE</span></span>
+<span><span class="co">## 6   1           campus    FALSE        TRUE       FALSE               FALSE</span></span>
+<span><span class="co">##   is_jvsd is_stem is_traditional</span></span>
+<span><span class="co">## 1   FALSE   FALSE           TRUE</span></span>
+<span><span class="co">## 2   FALSE   FALSE           TRUE</span></span>
+<span><span class="co">## 3   FALSE   FALSE           TRUE</span></span>
+<span><span class="co">## 4   FALSE   FALSE           TRUE</span></span>
+<span><span class="co">## 5   FALSE   FALSE           TRUE</span></span>
+<span><span class="co">## 6   FALSE   FALSE           TRUE</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="understanding-the-year-parameter">Understanding the Year Parameter<a class="anchor" aria-label="anchor" href="#understanding-the-year-parameter"></a>
@@ -298,7 +298,7 @@ categories:</p>
 <p>If you prefer one column per demographic (wide format):</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Fetch in wide format</span></span>
-<span><span class="va">enr_wide</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2024</span>, tidy <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">enr_wide</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2024</span>, tidy <span class="op">=</span> <span class="cn">FALSE</span>, use_cache <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># View demographic columns</span></span>
 <span><span class="va">enr_wide</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -453,11 +453,11 @@ district:</p>
 </h3>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Fetch a range of years</span></span>
-<span><span class="va">enr_history</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_enr_range.html">fetch_enr_range</a></span><span class="op">(</span><span class="fl">2020</span>, <span class="fl">2024</span><span class="op">)</span></span>
+<span><span class="va">enr_history</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_enr_range.html">fetch_enr_range</a></span><span class="op">(</span><span class="fl">2020</span>, <span class="fl">2024</span>, use_cache <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Or use purrr for more control</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://purrr.tidyverse.org/" class="external-link">purrr</a></span><span class="op">)</span></span>
-<span><span class="va">enr_multi</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_df</a></span><span class="op">(</span><span class="fl">2020</span><span class="op">:</span><span class="fl">2024</span>, <span class="va">fetch_enr</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">enr_multi</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_df</a></span><span class="op">(</span><span class="fl">2020</span><span class="op">:</span><span class="fl">2024</span>, <span class="op">~</span><span class="fu"><a href="../reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="va">.x</span>, use_cache <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="statewide-trends">Statewide Trends<a class="anchor" aria-label="anchor" href="#statewide-trends"></a>
@@ -563,7 +563,7 @@ district:</p>
 </h3>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Fetch multiple years for trend analysis</span></span>
-<span><span class="va">enr_trend</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_enr_range.html">fetch_enr_range</a></span><span class="op">(</span><span class="fl">2018</span>, <span class="fl">2024</span><span class="op">)</span></span>
+<span><span class="va">enr_trend</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fetch_enr_range.html">fetch_enr_range</a></span><span class="op">(</span><span class="fl">2018</span>, <span class="fl">2024</span>, use_cache <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># State enrollment trend</span></span>
 <span><span class="va">state_trend</span> <span class="op">&lt;-</span> <span class="va">enr_trend</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -670,6 +670,44 @@ for data validation</li>
 <li>Use <code><a href="../reference/filter_district.html">?filter_district</a></code> and <code><a href="../reference/filter_county.html">?filter_county</a></code>
 for filtering helpers</li>
 </ul>
+</div>
+<div class="section level2">
+<h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
+</h2>
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## R version 4.5.0 (2025-04-11)</span></span>
+<span><span class="co">## Platform: aarch64-apple-darwin22.6.0</span></span>
+<span><span class="co">## Running under: macOS 26.1</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## Matrix products: default</span></span>
+<span><span class="co">## BLAS:   /opt/homebrew/Cellar/openblas/0.3.30/lib/libopenblasp-r0.3.30.dylib </span></span>
+<span><span class="co">## LAPACK: /opt/homebrew/Cellar/r/4.5.0/lib/R/lib/libRlapack.dylib;  LAPACK version 3.12.1</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## locale:</span></span>
+<span><span class="co">## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## time zone: America/New_York</span></span>
+<span><span class="co">## tzcode source: internal</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## attached base packages:</span></span>
+<span><span class="co">## [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## other attached packages:</span></span>
+<span><span class="co">## [1] purrr_1.2.1        ggplot2_4.0.1      dplyr_1.1.4        ohschooldata_0.1.0</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## loaded via a namespace (and not attached):</span></span>
+<span><span class="co">##  [1] gtable_0.3.6       jsonlite_2.0.0     compiler_4.5.0     tidyselect_1.2.1  </span></span>
+<span><span class="co">##  [5] jquerylib_0.1.4    systemfonts_1.3.1  scales_1.4.0       textshaping_1.0.4 </span></span>
+<span><span class="co">##  [9] yaml_2.3.12        fastmap_1.2.0      R6_2.6.1           generics_0.1.4    </span></span>
+<span><span class="co">## [13] knitr_1.51         htmlwidgets_1.6.4  tibble_3.3.1       desc_1.4.3        </span></span>
+<span><span class="co">## [17] bslib_0.9.0        pillar_1.11.1      RColorBrewer_1.1-3 rlang_1.1.7       </span></span>
+<span><span class="co">## [21] cachem_1.1.0       xfun_0.55          fs_1.6.6           sass_0.4.10       </span></span>
+<span><span class="co">## [25] S7_0.2.1           otel_0.2.0         cli_3.6.5          withr_3.0.2       </span></span>
+<span><span class="co">## [29] pkgdown_2.2.0      magrittr_2.0.4     digest_0.6.39      grid_4.5.0        </span></span>
+<span><span class="co">## [33] lifecycle_1.0.5    vctrs_0.7.0        evaluate_1.0.5     glue_1.8.0        </span></span>
+<span><span class="co">## [37] farver_2.1.2       ragg_1.5.0         rmarkdown_2.30     tools_4.5.0       </span></span>
+<span><span class="co">## [41] pkgconfig_2.0.3    htmltools_0.5.9</span></span></code></pre>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
