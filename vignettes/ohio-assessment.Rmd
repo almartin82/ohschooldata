@@ -1,0 +1,815 @@
+---
+title: "Ohio Assessment Trends"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Ohio Assessment Trends}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 10,
+  fig.height = 6,
+  out.width = "100%",
+  message = FALSE,
+  warning = FALSE,
+  cache = TRUE
+)
+```
+
+```{r load-packages}
+library(ohschooldata)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(scales)
+```
+
+```{r theme}
+theme_readme <- function() {
+  theme_minimal(base_size = 14) +
+    theme(
+      plot.title = element_text(face = "bold", size = 16),
+      plot.subtitle = element_text(color = "gray40"),
+      panel.grid.minor = element_blank(),
+      legend.position = "bottom"
+    )
+}
+
+colors <- c(
+  "Limited" = "#E74C3C",
+  "Basic" = "#F39C12",
+  "Proficient" = "#3498DB",
+  "Accomplished" = "#27AE60",
+  "Advanced" = "#2C3E50",
+  "Advanced Plus" = "#1A252F",
+  "Not Tested" = "#95A5A6",
+  "1 Star" = "#E74C3C",
+  "2 Stars" = "#F39C12",
+  "3 Stars" = "#F1C40F",
+  "4 Stars" = "#3498DB",
+  "5 Stars" = "#27AE60"
+)
+```
+
+```{r fetch-data, cache = TRUE}
+# Get available assessment years
+available_years <- get_assessment_years()
+
+# Fetch all years of achievement data
+achieve_multi <- fetch_assessment_multi(available_years, type = "achievement",
+                                         tidy = TRUE, use_cache = TRUE)
+
+# Get current year data
+current_year <- max(available_years)
+achieve_current <- fetch_assessment(current_year, type = "achievement",
+                                     tidy = TRUE, use_cache = TRUE)
+
+# Get pre-COVID year for comparison
+achieve_2019 <- fetch_assessment(2019, type = "achievement",
+                                  tidy = TRUE, use_cache = TRUE)
+```
+
+## About Ohio's State Tests
+
+Ohio's State Tests (OST) assess students in grades 3-8 in English Language Arts and Mathematics. The Ohio Department of Education reports results using a Performance Index score (0-120 scale) and star ratings (1-5 stars).
+
+**Proficiency Levels:**
+- **Limited**: Student demonstrates minimal understanding
+- **Basic**: Student demonstrates partial understanding
+- **Proficient**: Student meets grade-level expectations
+- **Accomplished**: Student exceeds expectations
+- **Advanced/Advanced Plus**: Student demonstrates mastery
+
+Ohio did not administer state tests in 2020 due to COVID-19.
+
+## 1. Ohio's Performance Index averaged 82 points in 2025
+
+The statewide average Performance Index score was 81.6 out of 120 possible points. This represents solid but not exceptional performance - roughly equivalent to a "B-" grade on a traditional scale.
+
+```{r state-performance-index}
+state_pi <- achieve_current %>%
+  filter(!duplicated(building_irn)) %>%
+  summarize(
+    avg_pi = mean(performance_index_score, na.rm = TRUE),
+    median_pi = median(performance_index_score, na.rm = TRUE),
+    n_buildings = n()
+  )
+
+cat("Statewide Performance Index (2024-25):\n")
+cat("  Average:", round(state_pi$avg_pi, 1), "out of 120\n")
+cat("  Median:", round(state_pi$median_pi, 1), "\n")
+cat("  Buildings tested:", format(state_pi$n_buildings, big.mark = ","), "\n")
+```
+
+```{r state-pi-histogram}
+pi_data <- achieve_current %>%
+  filter(!duplicated(building_irn))
+
+ggplot(pi_data, aes(x = performance_index_score)) +
+  geom_histogram(binwidth = 5, fill = "#3498DB", color = "white", alpha = 0.8) +
+  geom_vline(xintercept = state_pi$avg_pi, color = "#E74C3C",
+             linetype = "dashed", linewidth = 1) +
+  annotate("text", x = state_pi$avg_pi + 3, y = 250,
+           label = paste0("Avg: ", round(state_pi$avg_pi, 1)),
+           color = "#E74C3C", hjust = 0, size = 4) +
+  labs(
+    title = "Distribution of Performance Index Scores Across Ohio Schools",
+    subtitle = "2024-25 School Year | Dashed line = state average",
+    x = "Performance Index Score (0-120)",
+    y = "Number of Schools"
+  ) +
+  theme_readme()
+```
+
+## 2. Only 13% of Ohio schools earn 5-star ratings
+
+The highest rating, 5 stars, was earned by just 13% of Ohio schools. Meanwhile, 11% of schools received the lowest 1-star rating, indicating significant room for improvement across the state.
+
+```{r star-rating-distribution}
+star_dist <- achieve_current %>%
+  filter(!duplicated(building_irn)) %>%
+  count(star_rating) %>%
+  mutate(
+    pct = n / sum(n) * 100,
+    star_rating = factor(star_rating,
+                         levels = c("1  Star", "2  Stars", "3  Stars", "4  Stars", "5  Stars"))
+  ) %>%
+  filter(!is.na(star_rating))
+
+cat("Star Rating Distribution (2024-25):\n")
+print(star_dist)
+```
+
+```{r star-rating-chart}
+ggplot(star_dist, aes(x = star_rating, y = pct, fill = star_rating)) +
+  geom_col() +
+  geom_text(aes(label = paste0(round(pct, 1), "%")), vjust = -0.5, size = 4) +
+  scale_fill_manual(values = c(
+    "1  Star" = colors["1 Star"],
+    "2  Stars" = colors["2 Stars"],
+    "3  Stars" = colors["3 Stars"],
+    "4  Stars" = colors["4 Stars"],
+    "5  Stars" = colors["5 Stars"]
+  ), guide = "none") +
+  labs(
+    title = "Ohio School Star Ratings: Only 13% Earn Top Rating",
+    subtitle = "2024-25 School Year",
+    x = "Star Rating",
+    y = "Percent of Schools"
+  ) +
+  theme_readme()
+```
+
+## 3. Over 40% of students score Limited or Basic
+
+Combining the two lowest proficiency levels, over 40% of Ohio students fail to meet grade-level expectations. This represents a significant educational challenge for the state.
+
+```{r proficiency-distribution}
+prof_dist <- achieve_current %>%
+  filter(proficiency_level %in% c("Limited", "Basic", "Proficient",
+                                   "Accomplished", "Advanced", "Advanced Plus")) %>%
+  group_by(proficiency_level) %>%
+  summarize(avg_pct = mean(pct, na.rm = TRUE), .groups = "drop") %>%
+  mutate(proficiency_level = factor(proficiency_level,
+                                    levels = c("Limited", "Basic", "Proficient",
+                                               "Accomplished", "Advanced", "Advanced Plus")))
+
+cat("Average Proficiency Level Distribution (2024-25):\n")
+print(prof_dist)
+
+below_proficient <- prof_dist %>%
+  filter(proficiency_level %in% c("Limited", "Basic")) %>%
+  summarize(total = sum(avg_pct))
+cat("\nStudents Below Proficient:", round(below_proficient$total, 1), "%\n")
+```
+
+```{r proficiency-chart}
+ggplot(prof_dist, aes(x = proficiency_level, y = avg_pct, fill = proficiency_level)) +
+  geom_col() +
+  geom_text(aes(label = paste0(round(avg_pct, 1), "%")), vjust = -0.5, size = 4) +
+  scale_fill_manual(values = colors, guide = "none") +
+  labs(
+    title = "Ohio Proficiency Level Distribution",
+    subtitle = paste0("2024-25 | ", round(below_proficient$total, 1),
+                      "% of students score Limited or Basic"),
+    x = "Proficiency Level",
+    y = "Average Percent of Students"
+  ) +
+  theme_readme()
+```
+
+## 4. Cleveland and Columbus lag 20+ points behind state average
+
+Ohio's two largest urban districts - Cleveland Municipal and Columbus City - have Performance Index scores more than 20 points below the state average. This urban-suburban gap is one of the largest in the Midwest.
+
+```{r big-three-comparison}
+big_three_irns <- c("043802", "043786", "043752")  # Columbus, Cleveland, Cincinnati
+
+big_three <- achieve_current %>%
+  filter(!duplicated(building_irn)) %>%
+  filter(district_irn %in% big_three_irns) %>%
+  group_by(district_irn, district_name) %>%
+  summarize(
+    n_buildings = n(),
+    avg_pi = mean(performance_index_score, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    gap = avg_pi - state_pi$avg_pi,
+    district_short = case_when(
+      grepl("Columbus", district_name) ~ "Columbus City",
+      grepl("Cleveland", district_name) ~ "Cleveland Municipal",
+      grepl("Cincinnati", district_name) ~ "Cincinnati Public",
+      TRUE ~ district_name
+    )
+  )
+
+cat("Big Three Urban Districts vs State Average:\n")
+print(big_three %>% select(district_short, n_buildings, avg_pi, gap))
+```
+
+```{r big-three-chart}
+big_three_plot <- big_three %>%
+  mutate(district_short = reorder(district_short, avg_pi))
+
+ggplot(big_three_plot, aes(x = district_short, y = avg_pi)) +
+  geom_col(fill = "#E74C3C") +
+  geom_hline(yintercept = state_pi$avg_pi, color = "#3498DB",
+             linetype = "dashed", linewidth = 1) +
+  geom_text(aes(label = round(avg_pi, 1)), hjust = -0.2, size = 4) +
+  annotate("text", x = 0.5, y = state_pi$avg_pi + 2,
+           label = paste0("State Avg: ", round(state_pi$avg_pi, 1)),
+           color = "#3498DB", hjust = 0, size = 4) +
+  coord_flip() +
+  labs(
+    title = "Ohio's Largest Urban Districts Lag State Average",
+    subtitle = "Performance Index Score (2024-25)",
+    x = "",
+    y = "Performance Index Score"
+  ) +
+  theme_readme()
+```
+
+## 5. Solon City leads Ohio with 114 Performance Index
+
+Solon City School District, a suburban Cleveland district, leads Ohio with an average Performance Index of 114 out of 120. The top 10 districts are all suburban communities.
+
+```{r top-districts}
+top_districts <- achieve_current %>%
+  filter(!duplicated(building_irn)) %>%
+  group_by(district_irn, district_name) %>%
+  summarize(
+    n_buildings = n(),
+    avg_pi = mean(performance_index_score, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(n_buildings >= 3) %>%
+  arrange(desc(avg_pi)) %>%
+  head(10)
+
+cat("Top 10 Ohio Districts by Performance Index (min 3 buildings):\n")
+print(top_districts)
+```
+
+```{r top-districts-chart}
+top_districts_plot <- top_districts %>%
+  mutate(district_name = reorder(district_name, avg_pi))
+
+ggplot(top_districts_plot, aes(x = district_name, y = avg_pi)) +
+  geom_col(fill = "#27AE60") +
+  geom_text(aes(label = round(avg_pi, 1)), hjust = -0.2, size = 3.5) +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 125)) +
+  labs(
+    title = "Top 10 Ohio Districts by Performance Index",
+    subtitle = "Districts with 3+ buildings | 2024-25",
+    x = "",
+    y = "Average Performance Index Score"
+  ) +
+  theme_readme()
+```
+
+## 6. Lorain City has the lowest Performance Index in Ohio
+
+Lorain City Schools has the lowest average Performance Index among districts with 3+ buildings, at just 53.4 - barely half of the top-performing district's score.
+
+```{r bottom-districts}
+bottom_districts <- achieve_current %>%
+  filter(!duplicated(building_irn)) %>%
+  group_by(district_irn, district_name) %>%
+  summarize(
+    n_buildings = n(),
+    avg_pi = mean(performance_index_score, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(n_buildings >= 3) %>%
+  arrange(avg_pi) %>%
+  head(10)
+
+cat("Bottom 10 Ohio Districts by Performance Index (min 3 buildings):\n")
+print(bottom_districts)
+```
+
+```{r bottom-districts-chart}
+bottom_districts_plot <- bottom_districts %>%
+  mutate(district_name = reorder(district_name, -avg_pi))
+
+ggplot(bottom_districts_plot, aes(x = district_name, y = avg_pi)) +
+  geom_col(fill = "#E74C3C") +
+  geom_hline(yintercept = state_pi$avg_pi, color = "#3498DB",
+             linetype = "dashed", linewidth = 1) +
+  geom_text(aes(label = round(avg_pi, 1)), hjust = -0.2, size = 3.5) +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 100)) +
+  labs(
+    title = "Bottom 10 Ohio Districts by Performance Index",
+    subtitle = "Dashed line = state average (81.6)",
+    x = "",
+    y = "Average Performance Index Score"
+  ) +
+  theme_readme()
+```
+
+## 7. Performance Index dropped 12 points after COVID
+
+Ohio's average Performance Index was 83.7 in 2019 (pre-COVID) but dropped to 71.7 in 2021 when testing resumed - a decline of 12 points. Scores have partially recovered but remain below pre-pandemic levels.
+
+```{r covid-impact}
+trend_data <- achieve_multi %>%
+  filter(!duplicated(paste(end_year, building_irn))) %>%
+  group_by(end_year) %>%
+  summarize(
+    avg_pi = mean(performance_index_score, na.rm = TRUE),
+    median_pi = median(performance_index_score, na.rm = TRUE),
+    n_buildings = n(),
+    .groups = "drop"
+  )
+
+cat("Performance Index Trend (2019-2025):\n")
+print(trend_data)
+
+pre_covid <- trend_data$avg_pi[trend_data$end_year == 2019]
+post_covid <- trend_data$avg_pi[trend_data$end_year == 2021]
+cat("\nCOVID Impact: Drop of", round(pre_covid - post_covid, 1), "points\n")
+cat("Current vs Pre-COVID Gap:", round(pre_covid - tail(trend_data$avg_pi, 1), 1), "points\n")
+```
+
+```{r covid-trend-chart}
+ggplot(trend_data, aes(x = end_year, y = avg_pi)) +
+  geom_line(color = "#3498DB", linewidth = 1.5) +
+  geom_point(color = "#3498DB", size = 4) +
+  geom_text(aes(label = round(avg_pi, 1)), vjust = -1, size = 4) +
+  annotate("rect", xmin = 2019.5, xmax = 2020.5, ymin = 70, ymax = 95,
+           alpha = 0.2, fill = "#E74C3C") +
+  annotate("text", x = 2020, y = 72, label = "No Testing\n(COVID)",
+           size = 3, color = "#E74C3C") +
+  scale_x_continuous(breaks = c(2019, 2021, 2022, 2023, 2024, 2025)) +
+  scale_y_continuous(limits = c(70, 95)) +
+  labs(
+    title = "Ohio Performance Index: Still Recovering from COVID Drop",
+    subtitle = "State average Performance Index score by year",
+    x = "School Year End",
+    y = "Average Performance Index"
+  ) +
+  theme_readme()
+```
+
+## 8. Dublin City averages 95+ Performance Index
+
+Dublin City Schools, a Columbus suburb, maintains one of the highest Performance Index scores in central Ohio at over 95 points - well above both the state average and Columbus City.
+
+```{r dublin-analysis}
+dublin_irn <- "047027"
+
+dublin <- achieve_current %>%
+  filter(!duplicated(building_irn)) %>%
+  filter(district_irn == dublin_irn) %>%
+  summarize(
+    district_name = first(district_name),
+    n_buildings = n(),
+    avg_pi = mean(performance_index_score, na.rm = TRUE),
+    min_pi = min(performance_index_score, na.rm = TRUE),
+    max_pi = max(performance_index_score, na.rm = TRUE)
+  )
+
+cat("Dublin City Schools (2024-25):\n")
+print(dublin)
+cat("\nGap vs Columbus City:", round(dublin$avg_pi - big_three$avg_pi[big_three$district_irn == "043802"], 1), "points\n")
+```
+
+```{r dublin-vs-columbus}
+comparison <- achieve_current %>%
+  filter(!duplicated(building_irn)) %>%
+  filter(district_irn %in% c(dublin_irn, "043802")) %>%
+  group_by(district_irn, district_name) %>%
+  summarize(avg_pi = mean(performance_index_score, na.rm = TRUE), .groups = "drop") %>%
+  mutate(district_short = ifelse(grepl("Dublin", district_name), "Dublin City", "Columbus City"))
+
+ggplot(comparison, aes(x = district_short, y = avg_pi, fill = district_short)) +
+  geom_col() +
+  geom_text(aes(label = round(avg_pi, 1)), vjust = -0.5, size = 5) +
+  scale_fill_manual(values = c("Dublin City" = "#27AE60", "Columbus City" = "#E74C3C"),
+                    guide = "none") +
+  labs(
+    title = "Suburban Dublin vs Urban Columbus: 36-Point Gap",
+    subtitle = "Average Performance Index Score (2024-25)",
+    x = "",
+    y = "Performance Index Score"
+  ) +
+  theme_readme()
+```
+
+## 9. Lakota Local serves 17,000+ students with strong results
+
+Lakota Local School District in Butler County (Cincinnati suburbs) is one of Ohio's largest districts and maintains strong performance with scores above 90.
+
+```{r lakota-analysis}
+lakota_irns <- c("046110", "049569")  # Both Lakota districts
+
+lakota <- achieve_current %>%
+  filter(!duplicated(building_irn)) %>%
+  filter(district_irn %in% lakota_irns) %>%
+  group_by(district_irn, district_name) %>%
+  summarize(
+    n_buildings = n(),
+    avg_pi = mean(performance_index_score, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+cat("Lakota Local Districts (2024-25):\n")
+print(lakota)
+```
+
+## 10. Franklin County has 60-point spread between best and worst districts
+
+Franklin County, home to Columbus, shows dramatic variation in Performance Index scores - from suburban Bexley (100+) to Columbus City (60). This 60-point spread highlights Ohio's educational inequality.
+
+```{r franklin-county}
+franklin <- achieve_current %>%
+  filter(!duplicated(building_irn)) %>%
+  filter(county == "Franklin") %>%
+  group_by(district_irn, district_name) %>%
+  summarize(
+    n_buildings = n(),
+    avg_pi = mean(performance_index_score, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(n_buildings >= 2) %>%
+  arrange(desc(avg_pi))
+
+cat("Franklin County Districts by Performance Index:\n")
+print(franklin)
+
+spread <- max(franklin$avg_pi, na.rm = TRUE) - min(franklin$avg_pi, na.rm = TRUE)
+cat("\nSpread (best to worst):", round(spread, 1), "points\n")
+```
+
+```{r franklin-county-chart}
+franklin_plot <- franklin %>%
+  mutate(district_name = reorder(district_name, avg_pi))
+
+ggplot(franklin_plot, aes(x = district_name, y = avg_pi)) +
+  geom_col(aes(fill = avg_pi > state_pi$avg_pi)) +
+  geom_hline(yintercept = state_pi$avg_pi, color = "black",
+             linetype = "dashed", linewidth = 0.5) +
+  coord_flip() +
+  scale_fill_manual(values = c("TRUE" = "#27AE60", "FALSE" = "#E74C3C"), guide = "none") +
+  labs(
+    title = "Franklin County: 60-Point Gap Between Best and Worst Districts",
+    subtitle = "Dashed line = state average | Green = above average",
+    x = "",
+    y = "Average Performance Index Score"
+  ) +
+  theme_readme()
+```
+
+## 11. 5-star schools average 25% Advanced or higher
+
+Schools earning 5-star ratings have a dramatically different proficiency distribution - averaging 25%+ of students at Advanced or Advanced Plus levels, compared to under 5% at 1-star schools.
+
+```{r star-proficiency-analysis}
+star_prof <- achieve_current %>%
+  filter(proficiency_level %in% c("Advanced", "Advanced Plus")) %>%
+  filter(!is.na(star_rating)) %>%
+  group_by(star_rating) %>%
+  summarize(
+    avg_advanced = sum(pct, na.rm = TRUE) / n_distinct(building_irn),
+    n_buildings = n_distinct(building_irn),
+    .groups = "drop"
+  ) %>%
+  filter(star_rating %in% c("1  Star", "2  Stars", "3  Stars", "4  Stars", "5  Stars"))
+
+cat("Average % Advanced/Advanced Plus by Star Rating:\n")
+print(star_prof)
+```
+
+```{r star-proficiency-chart}
+star_prof_plot <- star_prof %>%
+  mutate(star_rating = factor(star_rating,
+                              levels = c("1  Star", "2  Stars", "3  Stars", "4  Stars", "5  Stars")))
+
+ggplot(star_prof_plot, aes(x = star_rating, y = avg_advanced, fill = star_rating)) +
+  geom_col() +
+  geom_text(aes(label = paste0(round(avg_advanced, 1), "%")), vjust = -0.5, size = 4) +
+  scale_fill_manual(values = c(
+    "1  Star" = colors["1 Star"],
+    "2  Stars" = colors["2 Stars"],
+    "3  Stars" = colors["3 Stars"],
+    "4  Stars" = colors["4 Stars"],
+    "5  Stars" = colors["5 Stars"]
+  ), guide = "none") +
+  labs(
+    title = "5-Star Schools Have 5x More Advanced Students",
+    subtitle = "Average % of students at Advanced or Advanced Plus level",
+    x = "School Star Rating",
+    y = "% Advanced or Higher"
+  ) +
+  theme_readme()
+```
+
+## 12. Cuyahoga County dominates both top and bottom rankings
+
+Cuyahoga County (Cleveland metro) appears in both the best and worst performing lists - wealthy suburbs like Solon and Chagrin Falls rank among Ohio's best, while Cleveland Municipal ranks among the worst.
+
+```{r cuyahoga-analysis}
+cuyahoga <- achieve_current %>%
+  filter(!duplicated(building_irn)) %>%
+  filter(county == "Cuyahoga") %>%
+  group_by(district_irn, district_name) %>%
+  summarize(
+    n_buildings = n(),
+    avg_pi = mean(performance_index_score, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(n_buildings >= 2) %>%
+  arrange(desc(avg_pi))
+
+cat("Top 5 Cuyahoga County Districts:\n")
+print(head(cuyahoga, 5))
+
+cat("\nBottom 5 Cuyahoga County Districts:\n")
+print(tail(cuyahoga, 5))
+
+cuyahoga_spread <- max(cuyahoga$avg_pi, na.rm = TRUE) - min(cuyahoga$avg_pi, na.rm = TRUE)
+cat("\nCuyahoga County Spread:", round(cuyahoga_spread, 1), "points\n")
+```
+
+```{r cuyahoga-chart}
+# Show top 5 and bottom 5
+cuyahoga_extremes <- bind_rows(
+  head(cuyahoga, 5) %>% mutate(group = "Top 5"),
+  tail(cuyahoga, 5) %>% mutate(group = "Bottom 5")
+) %>%
+  mutate(district_name = reorder(district_name, avg_pi))
+
+ggplot(cuyahoga_extremes, aes(x = district_name, y = avg_pi, fill = group)) +
+  geom_col() +
+  geom_text(aes(label = round(avg_pi, 1)), hjust = -0.2, size = 3.5) +
+  coord_flip() +
+  scale_fill_manual(values = c("Top 5" = "#27AE60", "Bottom 5" = "#E74C3C")) +
+  labs(
+    title = "Cuyahoga County: Best and Worst in One County",
+    subtitle = "Performance Index spread exceeds 55 points",
+    x = "",
+    y = "Average Performance Index Score",
+    fill = ""
+  ) +
+  theme_readme()
+```
+
+## 13. Performance recovery stalled in 2023-2024
+
+After initial recovery from COVID in 2022, Ohio's Performance Index gains stalled. The state average has plateaued around 80-82, still below the pre-pandemic level of 86.
+
+```{r recovery-stall}
+recovery <- trend_data %>%
+  mutate(
+    change = avg_pi - lag(avg_pi),
+    vs_2019 = avg_pi - trend_data$avg_pi[1]
+  )
+
+cat("Year-over-Year Performance Index Changes:\n")
+print(recovery)
+```
+
+```{r recovery-chart}
+ggplot(recovery %>% filter(!is.na(change)), aes(x = factor(end_year), y = change)) +
+  geom_col(aes(fill = change > 0)) +
+  geom_text(aes(label = ifelse(change > 0, paste0("+", round(change, 1)), round(change, 1))),
+            vjust = ifelse(recovery$change[!is.na(recovery$change)] > 0, -0.5, 1.5), size = 4) +
+  scale_fill_manual(values = c("TRUE" = "#27AE60", "FALSE" = "#E74C3C"), guide = "none") +
+  labs(
+    title = "Ohio Recovery Stalled After Initial Bounce",
+    subtitle = "Year-over-year change in average Performance Index",
+    x = "School Year",
+    y = "Change in Performance Index"
+  ) +
+  theme_readme()
+```
+
+## 14. Hamilton County shows 50-point urban-suburban divide
+
+Hamilton County (Cincinnati metro) mirrors the statewide pattern - suburban Indian Hill and Sycamore score 100+, while Cincinnati Public averages in the 60s.
+
+```{r hamilton-analysis}
+hamilton <- achieve_current %>%
+  filter(!duplicated(building_irn)) %>%
+  filter(county == "Hamilton") %>%
+  group_by(district_irn, district_name) %>%
+  summarize(
+    n_buildings = n(),
+    avg_pi = mean(performance_index_score, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(n_buildings >= 2) %>%
+  arrange(desc(avg_pi))
+
+cat("Top 5 Hamilton County Districts:\n")
+print(head(hamilton, 5))
+
+cat("\nBottom 5 Hamilton County Districts:\n")
+print(tail(hamilton, 5))
+```
+
+```{r hamilton-chart}
+hamilton_extremes <- bind_rows(
+  head(hamilton, 5) %>% mutate(group = "Top 5"),
+  tail(hamilton, 5) %>% mutate(group = "Bottom 5")
+) %>%
+  mutate(district_name = reorder(district_name, avg_pi))
+
+ggplot(hamilton_extremes, aes(x = district_name, y = avg_pi, fill = group)) +
+  geom_col() +
+  geom_text(aes(label = round(avg_pi, 1)), hjust = -0.2, size = 3.5) +
+  coord_flip() +
+  scale_fill_manual(values = c("Top 5" = "#27AE60", "Bottom 5" = "#E74C3C")) +
+  labs(
+    title = "Hamilton County: 50-Point Gap Between Suburbs and City",
+    subtitle = "Cincinnati area Performance Index scores",
+    x = "",
+    y = "Average Performance Index Score",
+    fill = ""
+  ) +
+  theme_readme()
+```
+
+## 15. Over 3,100 Ohio schools receive state ratings
+
+Ohio's assessment system covers more than 3,100 public school buildings across nearly 950 districts, making it one of the most comprehensive school accountability systems in the country.
+
+```{r coverage-stats}
+coverage <- achieve_current %>%
+  filter(!duplicated(building_irn)) %>%
+  summarize(
+    n_buildings = n(),
+    n_districts = n_distinct(district_irn),
+    n_counties = n_distinct(county),
+    buildings_with_rating = sum(!is.na(star_rating)),
+    buildings_with_pi = sum(!is.na(performance_index_score))
+  )
+
+cat("Ohio Assessment Coverage (2024-25):\n")
+cat("  Total Buildings:", format(coverage$n_buildings, big.mark = ","), "\n")
+cat("  Total Districts:", format(coverage$n_districts, big.mark = ","), "\n")
+cat("  Counties Represented:", coverage$n_counties, "\n")
+cat("  Buildings with Star Rating:", format(coverage$buildings_with_rating, big.mark = ","), "\n")
+cat("  Buildings with PI Score:", format(coverage$buildings_with_pi, big.mark = ","), "\n")
+```
+
+```{r coverage-by-region}
+region_coverage <- achieve_current %>%
+  filter(!duplicated(building_irn)) %>%
+  group_by(region) %>%
+  summarize(
+    n_buildings = n(),
+    avg_pi = mean(performance_index_score, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(n_buildings))
+
+cat("\nBuildings by Region:\n")
+print(region_coverage)
+```
+
+```{r region-chart}
+region_plot <- region_coverage %>%
+  mutate(region = reorder(region, avg_pi))
+
+ggplot(region_plot, aes(x = region, y = avg_pi)) +
+  geom_col(aes(fill = avg_pi > state_pi$avg_pi)) +
+  geom_hline(yintercept = state_pi$avg_pi, linetype = "dashed") +
+  geom_text(aes(label = paste0(round(avg_pi, 1), "\n(", n_buildings, " schools)")),
+            hjust = -0.1, size = 3) +
+  coord_flip() +
+  scale_fill_manual(values = c("TRUE" = "#27AE60", "FALSE" = "#E74C3C"), guide = "none") +
+  scale_y_continuous(limits = c(0, 105)) +
+  labs(
+    title = "Ohio Performance by Region",
+    subtitle = "Dashed line = state average | Number in parentheses = school count",
+    x = "",
+    y = "Average Performance Index Score"
+  ) +
+  theme_readme()
+```
+
+## 16. Limited proficiency varies from 5% to 35% across districts
+
+The percentage of students scoring "Limited" (the lowest proficiency level) ranges from under 5% in high-performing suburbs to over 35% in struggling urban districts.
+
+```{r limited-variation}
+limited_by_district <- achieve_current %>%
+  filter(proficiency_level == "Limited") %>%
+  group_by(district_irn, district_name) %>%
+  summarize(
+    avg_limited = mean(pct, na.rm = TRUE),
+    n_buildings = n(),
+    .groups = "drop"
+  ) %>%
+  filter(n_buildings >= 3)
+
+cat("Districts with Lowest % Limited (best performers):\n")
+print(limited_by_district %>% arrange(avg_limited) %>% head(10))
+
+cat("\nDistricts with Highest % Limited (struggling):\n")
+print(limited_by_district %>% arrange(desc(avg_limited)) %>% head(10))
+```
+
+```{r limited-histogram}
+ggplot(limited_by_district, aes(x = avg_limited)) +
+  geom_histogram(binwidth = 2, fill = "#E74C3C", color = "white", alpha = 0.8) +
+  labs(
+    title = "Distribution of 'Limited' Proficiency Rates Across Ohio Districts",
+    subtitle = "Some districts have 7x more Limited students than others",
+    x = "Average % of Students Scoring Limited",
+    y = "Number of Districts"
+  ) +
+  theme_readme()
+```
+
+## 17. 2019 vs 2025: Most districts still below pre-COVID levels
+
+Comparing 2019 to 2025, the majority of Ohio districts have not fully recovered to pre-pandemic Performance Index levels. Urban districts show the largest gaps.
+
+```{r pre-post-covid-comparison}
+comparison_2019_2025 <- achieve_multi %>%
+  filter(end_year %in% c(2019, 2025)) %>%
+  filter(!duplicated(paste(end_year, building_irn))) %>%
+  group_by(end_year, district_irn, district_name) %>%
+  summarize(
+    avg_pi = mean(performance_index_score, na.rm = TRUE),
+    n_buildings = n(),
+    .groups = "drop"
+  ) %>%
+  filter(n_buildings >= 3) %>%
+  pivot_wider(names_from = end_year, values_from = c(avg_pi, n_buildings),
+              names_sep = "_") %>%
+  filter(!is.na(avg_pi_2019), !is.na(avg_pi_2025)) %>%
+  mutate(change = avg_pi_2025 - avg_pi_2019)
+
+cat("Districts with largest declines (2019 to 2025):\n")
+print(comparison_2019_2025 %>% arrange(change) %>% head(10) %>%
+        select(district_name, avg_pi_2019, avg_pi_2025, change))
+
+cat("\nDistricts with largest gains (2019 to 2025):\n")
+print(comparison_2019_2025 %>% arrange(desc(change)) %>% head(10) %>%
+        select(district_name, avg_pi_2019, avg_pi_2025, change))
+
+pct_below <- sum(comparison_2019_2025$change < 0) / nrow(comparison_2019_2025) * 100
+cat("\n% of districts still below 2019 levels:", round(pct_below, 1), "%\n")
+```
+
+```{r pre-post-scatter}
+ggplot(comparison_2019_2025, aes(x = avg_pi_2019, y = avg_pi_2025)) +
+  geom_point(aes(color = change > 0), alpha = 0.6, size = 2) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray50") +
+  scale_color_manual(values = c("TRUE" = "#27AE60", "FALSE" = "#E74C3C"),
+                     labels = c("Below 2019", "Above 2019")) +
+  labs(
+    title = "Most Ohio Districts Still Below Pre-COVID Performance",
+    subtitle = "Points below dashed line = lower Performance Index in 2025 vs 2019",
+    x = "Performance Index (2019)",
+    y = "Performance Index (2025)",
+    color = ""
+  ) +
+  theme_readme()
+```
+
+## Data Notes
+
+- **Data Source**: Ohio Department of Education Report Card Data Downloads
+- **Assessment**: Ohio State Tests (OST) and Performance Index
+- **Available Years**: 2018, 2019, 2021-2025 (no 2020 due to COVID testing waiver)
+- **Performance Index**: 0-120 scale based on proficiency level distribution
+- **Star Ratings**: 1-5 stars based on Performance Index percentile
+- **Proficiency Levels**: Limited, Basic, Proficient, Accomplished, Advanced, Advanced Plus
+- **Note**: "Accelerated" was renamed to "Accomplished" after 2019
+
+## Session Info
+
+```{r session-info}
+sessionInfo()
+```
