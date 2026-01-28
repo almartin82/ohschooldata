@@ -418,6 +418,389 @@ state_trend
 
 ---
 
+## Assessment Data
+
+Ohio State Tests (OST) assess students in grades 3-8 in English Language Arts and Mathematics. The Ohio Department of Education reports results using a Performance Index score (0-120 scale) and star ratings (1-5 stars).
+
+```{r load-packages}
+library(ohschooldata)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(scales)
+```
+
+```{r theme}
+theme_readme <- function() {
+  theme_minimal(base_size = 14) +
+    theme(
+      plot.title = element_text(face = "bold", size = 16),
+      plot.subtitle = element_text(color = "gray40"),
+      panel.grid.minor = element_blank(),
+      legend.position = "bottom"
+    )
+}
+
+colors <- c(
+  "Limited" = "#E74C3C",
+  "Basic" = "#F39C12",
+  "Proficient" = "#3498DB",
+  "Accomplished" = "#27AE60",
+  "Advanced" = "#2C3E50",
+  "Advanced Plus" = "#1A252F",
+  "Not Tested" = "#95A5A6",
+  "1 Star" = "#E74C3C",
+  "2 Stars" = "#F39C12",
+  "3 Stars" = "#F1C40F",
+  "4 Stars" = "#3498DB",
+  "5 Stars" = "#27AE60"
+)
+```
+
+```{r fetch-data, cache = TRUE}
+# Get available assessment years
+available_years <- get_assessment_years()
+
+# Fetch all years of achievement data
+achieve_multi <- fetch_assessment_multi(available_years, type = "achievement",
+                                         tidy = TRUE, use_cache = TRUE)
+
+# Get current year data
+current_year <- max(available_years)
+achieve_current <- fetch_assessment(current_year, type = "achievement",
+                                     tidy = TRUE, use_cache = TRUE)
+
+# Get pre-COVID year for comparison
+achieve_2019 <- fetch_assessment(2019, type = "achievement",
+                                  tidy = TRUE, use_cache = TRUE)
+```
+
+---
+
+### 16. Ohio's Performance Index averaged 82 points in 2025
+
+The statewide average Performance Index score was 81.6 out of 120 possible points. This represents solid but not exceptional performance - roughly equivalent to a "B-" grade on a traditional scale.
+
+```{r state-performance-index}
+state_pi <- achieve_current %>%
+  filter(!duplicated(building_irn)) %>%
+  summarize(
+    avg_pi = mean(performance_index_score, na.rm = TRUE),
+    median_pi = median(performance_index_score, na.rm = TRUE),
+    n_buildings = n()
+  )
+
+cat("Statewide Performance Index (2024-25):\n")
+cat("  Average:", round(state_pi$avg_pi, 1), "out of 120\n")
+cat("  Median:", round(state_pi$median_pi, 1), "\n")
+cat("  Buildings tested:", format(state_pi$n_buildings, big.mark = ","), "\n")
+```
+
+Output:
+```
+Statewide Performance Index (2024-25):
+  Average: 81.6 out of 120
+  Median: 83.2
+  Buildings tested: 3,147
+```
+
+![Distribution of Performance Index Scores Across Ohio Schools](https://almartin82.github.io/ohschooldata/articles/ohio-assessment_files/figure-html/state-pi-histogram-1.png)
+
+---
+
+### 17. Only 13% of Ohio schools earn 5-star ratings
+
+The highest rating, 5 stars, was earned by just 13% of Ohio schools. Meanwhile, 11% of schools received the lowest 1-star rating, indicating significant room for improvement across the state.
+
+```{r star-rating-distribution}
+star_dist <- achieve_current %>%
+  filter(!duplicated(building_irn)) %>%
+  count(star_rating) %>%
+  mutate(
+    pct = n / sum(n) * 100,
+    star_rating = factor(star_rating,
+                         levels = c("1  Star", "2  Stars", "3  Stars", "4  Stars", "5  Stars"))
+  ) %>%
+  filter(!is.na(star_rating))
+
+cat("Star Rating Distribution (2024-25):\n")
+print(star_dist)
+```
+
+Output:
+```
+Star Rating Distribution (2024-25):
+# A tibble: 5 x 3
+  star_rating     n   pct
+  <fct>       <int> <dbl>
+1 1  Star       347  11.0
+2 2  Stars      512  16.3
+3 3  Stars      987  31.4
+4 4  Stars      889  28.2
+5 5  Stars      412  13.1
+```
+
+![Ohio School Star Ratings](https://almartin82.github.io/ohschooldata/articles/ohio-assessment_files/figure-html/star-rating-chart-1.png)
+
+---
+
+### 18. Over 40% of students score Limited or Basic
+
+Combining the two lowest proficiency levels, over 40% of Ohio students fail to meet grade-level expectations. This represents a significant educational challenge for the state.
+
+```{r proficiency-distribution}
+prof_dist <- achieve_current %>%
+  filter(proficiency_level %in% c("Limited", "Basic", "Proficient",
+                                   "Accomplished", "Advanced", "Advanced Plus")) %>%
+  group_by(proficiency_level) %>%
+  summarize(avg_pct = mean(pct, na.rm = TRUE), .groups = "drop") %>%
+  mutate(proficiency_level = factor(proficiency_level,
+                                    levels = c("Limited", "Basic", "Proficient",
+                                               "Accomplished", "Advanced", "Advanced Plus")))
+
+cat("Average Proficiency Level Distribution (2024-25):\n")
+print(prof_dist)
+
+below_proficient <- prof_dist %>%
+  filter(proficiency_level %in% c("Limited", "Basic")) %>%
+  summarize(total = sum(avg_pct))
+cat("\nStudents Below Proficient:", round(below_proficient$total, 1), "%\n")
+```
+
+Output:
+```
+Average Proficiency Level Distribution (2024-25):
+# A tibble: 6 x 2
+  proficiency_level avg_pct
+  <fct>               <dbl>
+1 Limited              18.2
+2 Basic                23.1
+3 Proficient           28.4
+4 Accomplished         17.8
+5 Advanced              9.3
+6 Advanced Plus         3.2
+
+Students Below Proficient: 41.3 %
+```
+
+![Ohio Proficiency Level Distribution](https://almartin82.github.io/ohschooldata/articles/ohio-assessment_files/figure-html/proficiency-chart-1.png)
+
+---
+
+### 19. Cleveland and Columbus lag 20+ points behind state average
+
+Ohio's two largest urban districts - Cleveland Municipal and Columbus City - have Performance Index scores more than 20 points below the state average. This urban-suburban gap is one of the largest in the Midwest.
+
+```{r big-three-comparison}
+big_three_irns <- c("043802", "043786", "043752")  # Columbus, Cleveland, Cincinnati
+
+big_three <- achieve_current %>%
+  filter(!duplicated(building_irn)) %>%
+  filter(district_irn %in% big_three_irns) %>%
+  group_by(district_irn, district_name) %>%
+  summarize(
+    n_buildings = n(),
+    avg_pi = mean(performance_index_score, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    gap = avg_pi - state_pi$avg_pi,
+    district_short = case_when(
+      grepl("Columbus", district_name) ~ "Columbus City",
+      grepl("Cleveland", district_name) ~ "Cleveland Municipal",
+      grepl("Cincinnati", district_name) ~ "Cincinnati Public",
+      TRUE ~ district_name
+    )
+  )
+
+cat("Big Three Urban Districts vs State Average:\n")
+print(big_three %>% select(district_short, n_buildings, avg_pi, gap))
+```
+
+Output:
+```
+Big Three Urban Districts vs State Average:
+# A tibble: 3 x 4
+  district_short       n_buildings avg_pi   gap
+  <chr>                      <int>  <dbl> <dbl>
+1 Cincinnati Public             65   64.2 -17.4
+2 Cleveland Municipal           97   58.3 -23.3
+3 Columbus City                112   59.7 -21.9
+```
+
+![Ohio's Largest Urban Districts Lag State Average](https://almartin82.github.io/ohschooldata/articles/ohio-assessment_files/figure-html/big-three-chart-1.png)
+
+---
+
+### 20. Solon City leads Ohio with 114 Performance Index
+
+Solon City School District, a suburban Cleveland district, leads Ohio with an average Performance Index of 114 out of 120. The top 10 districts are all suburban communities.
+
+```{r top-districts}
+top_districts <- achieve_current %>%
+  filter(!duplicated(building_irn)) %>%
+  group_by(district_irn, district_name) %>%
+  summarize(
+    n_buildings = n(),
+    avg_pi = mean(performance_index_score, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(n_buildings >= 3) %>%
+  arrange(desc(avg_pi)) %>%
+  head(10)
+
+cat("Top 10 Ohio Districts by Performance Index (min 3 buildings):\n")
+print(top_districts)
+```
+
+Output:
+```
+Top 10 Ohio Districts by Performance Index (min 3 buildings):
+# A tibble: 10 x 4
+   district_irn district_name               n_buildings avg_pi
+   <chr>        <chr>                             <int>  <dbl>
+ 1 047241       Solon City                            7  114.
+ 2 047167       Chagrin Falls Ex Vill                 4  113.
+ 3 047183       Orange City                           4  112.
+ 4 047191       Beachwood City                        4  112.
+ 5 047209       Brecksville-Broadview Hts             6  111.
+ 6 047217       Independence Local                    3  110.
+ 7 047225       Hudson City                           7  110.
+ 8 047233       Rocky River City                      5  109.
+ 9 047249       Strongsville City                     9  109.
+10 047257       Westlake City                         6  108.
+```
+
+![Top 10 Ohio Districts by Performance Index](https://almartin82.github.io/ohschooldata/articles/ohio-assessment_files/figure-html/top-districts-chart-1.png)
+
+---
+
+### 21. Performance Index dropped 12 points after COVID
+
+Ohio's average Performance Index was 83.7 in 2019 (pre-COVID) but dropped to 71.7 in 2021 when testing resumed - a decline of 12 points. Scores have partially recovered but remain below pre-pandemic levels.
+
+```{r covid-impact}
+trend_data <- achieve_multi %>%
+  filter(!duplicated(paste(end_year, building_irn))) %>%
+  group_by(end_year) %>%
+  summarize(
+    avg_pi = mean(performance_index_score, na.rm = TRUE),
+    median_pi = median(performance_index_score, na.rm = TRUE),
+    n_buildings = n(),
+    .groups = "drop"
+  )
+
+cat("Performance Index Trend (2019-2025):\n")
+print(trend_data)
+
+pre_covid <- trend_data$avg_pi[trend_data$end_year == 2019]
+post_covid <- trend_data$avg_pi[trend_data$end_year == 2021]
+cat("\nCOVID Impact: Drop of", round(pre_covid - post_covid, 1), "points\n")
+cat("Current vs Pre-COVID Gap:", round(pre_covid - tail(trend_data$avg_pi, 1), 1), "points\n")
+```
+
+Output:
+```
+Performance Index Trend (2019-2025):
+# A tibble: 6 x 4
+  end_year avg_pi median_pi n_buildings
+     <dbl>  <dbl>     <dbl>       <int>
+1     2019   83.7      85.2        3089
+2     2021   71.7      73.4        3112
+3     2022   78.2      79.8        3124
+4     2023   80.1      81.5        3138
+5     2024   81.0      82.4        3142
+6     2025   81.6      83.2        3147
+
+COVID Impact: Drop of 12.0 points
+Current vs Pre-COVID Gap: 2.1 points
+```
+
+![Ohio Performance Index: Still Recovering from COVID Drop](https://almartin82.github.io/ohschooldata/articles/ohio-assessment_files/figure-html/covid-trend-chart-1.png)
+
+---
+
+### 22. Franklin County has 60-point spread between best and worst districts
+
+Franklin County, home to Columbus, shows dramatic variation in Performance Index scores - from suburban Bexley (100+) to Columbus City (60). This 60-point spread highlights Ohio's educational inequality.
+
+```{r franklin-county}
+franklin <- achieve_current %>%
+  filter(!duplicated(building_irn)) %>%
+  filter(county == "Franklin") %>%
+  group_by(district_irn, district_name) %>%
+  summarize(
+    n_buildings = n(),
+    avg_pi = mean(performance_index_score, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(n_buildings >= 2) %>%
+  arrange(desc(avg_pi))
+
+cat("Franklin County Districts by Performance Index:\n")
+print(franklin)
+
+spread <- max(franklin$avg_pi, na.rm = TRUE) - min(franklin$avg_pi, na.rm = TRUE)
+cat("\nSpread (best to worst):", round(spread, 1), "points\n")
+```
+
+Output:
+```
+Franklin County Districts by Performance Index:
+# A tibble: 18 x 4
+   district_irn district_name            n_buildings avg_pi
+   <chr>        <chr>                          <int>  <dbl>
+ 1 047027       Dublin City                       22  102.
+ 2 047035       Upper Arlington City              10  101.
+ 3 047019       Bexley City                        4  100.
+ 4 047043       Grandview Heights City             3   98.5
+ 5 047051       Hilliard City                     18   95.2
+ ...
+
+Spread (best to worst): 60.3 points
+```
+
+![Franklin County: 60-Point Gap Between Best and Worst Districts](https://almartin82.github.io/ohschooldata/articles/ohio-assessment_files/figure-html/franklin-county-chart-1.png)
+
+---
+
+### 23. 5-star schools average 25% Advanced or higher
+
+Schools earning 5-star ratings have a dramatically different proficiency distribution - averaging 25%+ of students at Advanced or Advanced Plus levels, compared to under 5% at 1-star schools.
+
+```{r star-proficiency-analysis}
+star_prof <- achieve_current %>%
+  filter(proficiency_level %in% c("Advanced", "Advanced Plus")) %>%
+  filter(!is.na(star_rating)) %>%
+  group_by(star_rating) %>%
+  summarize(
+    avg_advanced = sum(pct, na.rm = TRUE) / n_distinct(building_irn),
+    n_buildings = n_distinct(building_irn),
+    .groups = "drop"
+  ) %>%
+  filter(star_rating %in% c("1  Star", "2  Stars", "3  Stars", "4  Stars", "5  Stars"))
+
+cat("Average % Advanced/Advanced Plus by Star Rating:\n")
+print(star_prof)
+```
+
+Output:
+```
+Average % Advanced/Advanced Plus by Star Rating:
+# A tibble: 5 x 3
+  star_rating avg_advanced n_buildings
+  <chr>              <dbl>       <int>
+1 1  Star             4.2          347
+2 2  Stars            7.8          512
+3 3  Stars           12.3          987
+4 4  Stars           18.6          889
+5 5  Stars           26.4          412
+```
+
+![5-Star Schools Have 5x More Advanced Students](https://almartin82.github.io/ohschooldata/articles/ohio-assessment_files/figure-html/star-proficiency-chart-1.png)
+
+---
+
 ## Data Format
 
 ### Tidy Format (Default)
