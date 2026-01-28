@@ -19,6 +19,8 @@ navbar:
         href: articles/quickstart.html
       - text: Data Quality QA
         href: articles/data-quality-qa.html
+      - text: Ohio Assessment Data
+        href: articles/ohio-assessment.html
 
 reference:
 - title: Fetch Data
@@ -53,12 +55,31 @@ reference:
   - is_valid_irn
   - format_irn
 
+- title: Fetch Assessment Data
+  desc: Download and analyze Ohio assessment data
+  contents:
+  - fetch_assessment
+  - fetch_assessment_multi
+  - get_assessment_years
+  - list_assessment_types
+  - list_assessment_years
+  - get_raw_achievement
+  - get_raw_gap_closing
+  - process_achievement
+  - process_gap_closing
+  - tidy_achievement
+  - tidy_gap_closing
+  - id_assessment_aggs
+  - build_assessment_url
+  - calculate_proficiency_rate
+
 - title: Cache Management
   desc: Manage locally cached data
   contents:
   - cache_status
   - clear_enr_cache
   - clear_directory_cache
+  - clear_assessment_cache
 
 articles:
 - title: User Guides
@@ -66,6 +87,7 @@ articles:
   contents:
   - quickstart
   - data-quality-qa
+  - ohio-assessment
 - title: Internal
   contents:
   - starts_with("CLAUDE")
